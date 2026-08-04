@@ -1,0 +1,178 @@
+/**
+ * Shared TypeScript types for Ask My Codebase.
+ *
+ * These types define the core data model that flows through the pipeline:
+ *   Ingestion → Retrieval → Generation → Frontend
+ *
+ * Design note: Types are intentionally kept in a single file during early
+ * development. As the project grows, they can be split into domain-specific
+ * files (e.g., ingestion.ts, retrieval.ts) within this directory.
+ */
+
+// ---------------------------------------------------------------------------
+// Ingestion Types
+// ---------------------------------------------------------------------------
+
+/**
+ * A semantically meaningful chunk of source code, extracted by tree-sitter.
+ *
+ * Unlike naive character-count chunking, each CodeChunk corresponds to a
+ * real code boundary (function, class, method, or top-level module block).
+ * This preserves semantic coherence — a retrieval hit returns a complete,
+ * understandable unit of code, not a fragment split mid-expression.
+ */
+export interface CodeChunk {
+  /** Unique identifier (e.g., `${repoId}:${filePath}:${startLine}`). */
+  id: string;
+
+  /** Repository identifier (owner/repo or URL hash). */
+  repoId: string;
+
+  /** Relative file path within the repository (e.g., "src/auth/login.ts"). */
+  filePath: string;
+
+  /** Programming language (e.g., "javascript", "python", "typescript"). */
+  language: string;
+
+  /** The raw source code of this chunk. */
+  content: string;
+
+  /** 1-indexed start line in the original file. */
+  startLine: number;
+
+  /** 1-indexed end line in the original file (inclusive). */
+  endLine: number;
+
+  /** Name of the function/class/method, if applicable. */
+  symbolName?: string;
+
+  /** What kind of code construct this chunk represents. */
+  symbolType?: "function" | "class" | "method" | "module";
+
+  /**
+   * Embedding vector, populated during ingestion.
+   * Stored separately in the vector DB; included here for pipeline convenience.
+   */
+  embedding?: number[];
+}
+
+/**
+ * Metadata about an ingested repository.
+ */
+export interface RepoMetadata {
+  /** Unique identifier (owner/repo). */
+  id: string;
+
+  /** Full GitHub URL. */
+  url: string;
+
+  /** Default branch name. */
+  defaultBranch: string;
+
+  /** Total number of chunks extracted. */
+  chunkCount: number;
+
+  /** Total number of files processed. */
+  fileCount: number;
+
+  /** Languages detected in the repository. */
+  languages: string[];
+
+  /** ISO timestamp of when ingestion completed. */
+  ingestedAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Retrieval Types
+// ---------------------------------------------------------------------------
+
+/**
+ * A single retrieval result from hybrid search.
+ *
+ * Design note: We track the `source` so the frontend can show users whether
+ * a result came from semantic similarity, keyword match, or both (merged).
+ * This transparency is part of the "no hallucination" philosophy — users
+ * can see *why* a chunk was retrieved.
+ */
+export interface RetrievalResult {
+  /** The retrieved code chunk. */
+  chunk: CodeChunk;
+
+  /** Relevance score (0–1, higher is better). Normalized after fusion. */
+  score: number;
+
+  /** Which retrieval path found this chunk. */
+  source: "semantic" | "bm25" | "hybrid";
+}
+
+// ---------------------------------------------------------------------------
+// Generation Types
+// ---------------------------------------------------------------------------
+
+/**
+ * A citation linking a claim in the AI's answer to a specific code location.
+ */
+export interface Citation {
+  /** Relative file path. */
+  filePath: string;
+
+  /** Start line of the cited code. */
+  startLine: number;
+
+  /** End line of the cited code (inclusive). */
+  endLine: number;
+
+  /** The code snippet that supports the claim. */
+  snippet: string;
+}
+
+/**
+ * A complete answer from the generation pipeline.
+ */
+export interface GeneratedAnswer {
+  /** The natural-language answer text (may contain inline citation markers). */
+  text: string;
+
+  /** Structured citations referenced in the answer. */
+  citations: Citation[];
+
+  /** The chunks that were injected into the LLM context. */
+  retrievedChunks: RetrievalResult[];
+
+  /** Confidence indicator — if retrieval quality is low, this is true. */
+  lowConfidence: boolean;
+
+  /** Model used for generation (e.g., "llama-3.3-70b-versatile"). */
+  model: string;
+
+  /** Generation latency in milliseconds. */
+  latencyMs: number;
+}
+
+// ---------------------------------------------------------------------------
+// Health Check Types
+// ---------------------------------------------------------------------------
+
+/**
+ * Response shape for the /api/health endpoint.
+ */
+export interface HealthCheckResponse {
+  status: "healthy" | "degraded" | "unhealthy";
+  timestamp: string;
+  checks: {
+    nextjs: boolean;
+    embedding: {
+      ok: boolean;
+      model?: string;
+      dimension?: number;
+      latencyMs?: number;
+      error?: string;
+    };
+    treeSitter: {
+      ok: boolean;
+      languages?: string[];
+      testNodeCount?: number;
+      error?: string;
+    };
+  };
+}

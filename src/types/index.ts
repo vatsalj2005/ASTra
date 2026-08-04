@@ -158,6 +158,68 @@ export interface RetrievalResult {
 
   /** Which retrieval path found this chunk. */
   source: "semantic" | "bm25" | "hybrid";
+
+  /** Rank position in vector similarity search (1-indexed), if present. */
+  semanticRank?: number;
+
+  /** Rank position in BM25 keyword search (1-indexed), if present. */
+  bm25Rank?: number;
+
+  /** Calculated Reciprocal Rank Fusion (RRF) score. */
+  rrfScore?: number;
+}
+
+/**
+ * Confidence evaluation for retrieval results to prevent LLM hallucinations.
+ */
+export interface ConfidenceSignal {
+  /** Top result score or composite confidence metric. */
+  score: number;
+
+  /** Flag indicating low retrieval confidence (should respond "I don't know"). */
+  lowConfidence: boolean;
+
+  /** Human-readable rationale for confidence assessment. */
+  reason: string;
+}
+
+/**
+ * Options for configuring hybrid retrieval.
+ */
+export interface HybridSearchOptions {
+  /** Candidates to fetch per retrieval path before fusion (default: 20). */
+  topK?: number;
+
+  /** Final top ranked chunks to return (default: 8). */
+  topN?: number;
+
+  /** RRF smoothing constant k (default: 60). */
+  rrfK?: number;
+}
+
+/**
+ * Complete response returned by the hybrid retrieval engine.
+ */
+export interface HybridRetrievalResponse {
+  /** Raw user query. */
+  query: string;
+
+  /** Target repository identifier. */
+  repoId: string;
+
+  /** Final merged & ranked list of chunks. */
+  results: RetrievalResult[];
+
+  /** Confidence assessment of retrieval relevance. */
+  confidence: ConfidenceSignal;
+
+  /** Performance and search count breakdown. */
+  stats: {
+    semanticCandidatesCount: number;
+    bm25CandidatesCount: number;
+    mergedCount: number;
+    latencyMs: number;
+  };
 }
 
 // ---------------------------------------------------------------------------

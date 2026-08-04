@@ -324,6 +324,53 @@ export async function querySimilarChunks(
 }
 
 /**
+ * Retrieve all stored chunks for a given repository (used for indexing & multi-hop).
+ */
+export async function getAllRepoChunks(repoId: string): Promise<CodeChunk[]> {
+  const collection = await getCollection();
+  if (collection) {
+    try {
+      const existing = await collection.get({
+        where: { repoId: { $eq: repoId } },
+        include: ["embeddings", "documents", "metadatas"],
+      });
+
+      const results: CodeChunk[] = [];
+      if (existing && existing.ids) {
+        const ids = existing.ids;
+        const docs = existing.documents || [];
+        const metas = existing.metadatas || [];
+        const vecs = existing.embeddings || [];
+
+        for (let i = 0; i < ids.length; i++) {
+          const meta = metas[i] as Record<string, string | number>;
+          results.push({
+            id: ids[i],
+            repoId: String(meta.repoId || ""),
+            filePath: String(meta.filePath || ""),
+            language: String(meta.language || ""),
+            content: String(docs[i] || ""),
+            startLine: Number(meta.startLine || 1),
+            endLine: Number(meta.endLine || 1),
+            symbolName: meta.symbolName ? String(meta.symbolName) : undefined,
+            symbolType: meta.symbolType
+              ? (String(meta.symbolType) as CodeChunk["symbolType"])
+              : "module",
+            embedding: vecs[i] ? (vecs[i] as number[]) : undefined,
+          });
+        }
+      }
+      return results;
+    } catch {
+      return [];
+    }
+  }
+
+  const store = loadLocalStore();
+  return store.filter((c) => c.repoId === repoId);
+}
+
+/**
  * Get statistical count of stored chunks for a given repository.
  */
 export async function getRepoChunkCount(repoId: string): Promise<number> {

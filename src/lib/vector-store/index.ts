@@ -11,7 +11,6 @@
  * compatible with production vector stores.
  */
 
-import { ChromaClient, Collection } from "chromadb";
 import fs from "fs";
 import path from "path";
 import type { CodeChunk } from "@/types";
@@ -89,14 +88,29 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 // Singleton Connection Management
 // ---------------------------------------------------------------------------
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let cachedCollection: any = null;
 let isChromaAvailable: boolean | null = null;
-let cachedCollection: Collection | null = null;
+
+function getChromaModule() {
+  try {
+    // eslint-disable-next-line no-eval
+    return eval('require("chromadb")');
+  } catch {
+    return null;
+  }
+}
 
 async function checkChromaAvailability(): Promise<boolean> {
   if (isChromaAvailable !== null) return isChromaAvailable;
 
   try {
-    const client = new ChromaClient({ path: CHROMA_URL });
+    const chroma = getChromaModule();
+    if (!chroma) {
+      isChromaAvailable = false;
+      return false;
+    }
+    const client = new chroma.ChromaClient({ path: CHROMA_URL });
     await client.heartbeat();
     isChromaAvailable = true;
     console.log(`📡 Connected to ChromaDB vector store at ${CHROMA_URL}`);
@@ -110,13 +124,17 @@ async function checkChromaAvailability(): Promise<boolean> {
   return isChromaAvailable;
 }
 
-export async function getCollection(): Promise<Collection | null> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getCollection(): Promise<any> {
   const available = await checkChromaAvailability();
   if (!available) return null;
 
   if (cachedCollection) return cachedCollection;
 
-  const client = new ChromaClient({ path: CHROMA_URL });
+  const chroma = getChromaModule();
+  if (!chroma) return null;
+
+  const client = new chroma.ChromaClient({ path: CHROMA_URL });
   cachedCollection = await client.getOrCreateCollection({
     name: COLLECTION_NAME,
     embeddingFunction: noopEmbeddingFunction,

@@ -1,4 +1,4 @@
-# Ask My Codebase (ragedit)
+# ASTra — Ask My Codebase
 
 > Chat with any public GitHub repository in natural language. Get answers grounded in real code with file:line citations — not hallucinations.
 
@@ -124,8 +124,8 @@ grammars/                   # Tree-sitter WASM grammar files (built from source)
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/ragedit.git
-cd ragedit
+git clone https://github.com/vatsalj2005/ASTra.git
+cd ASTra
 
 # 2. Install dependencies
 npm install

@@ -244,20 +244,57 @@ export interface Citation {
 }
 
 /**
+ * Result of validating inline LLM citations against retrieved metadata.
+ */
+export interface CitationValidationResult {
+  /** Successfully verified inline citations. */
+  citations: Citation[];
+
+  /** Citation tags extracted from LLM text that failed metadata verification. */
+  invalidCitations: string[];
+}
+
+/**
+ * Configuration options for the LLM generation call.
+ */
+export interface GenerationOptions {
+  /** Sampling temperature (0.0 to 1.0, default: 0.1 for high factual precision). */
+  temperature?: number;
+
+  /** Maximum completion tokens to generate. */
+  maxTokens?: number;
+
+  /** Model ID (default: "llama-3.3-70b-versatile"). */
+  model?: string;
+
+  /** Whether 1-hop reference expansion is enabled (default: true). */
+  allowMultiHop?: boolean;
+}
+
+/**
  * A complete answer from the generation pipeline.
  */
 export interface GeneratedAnswer {
-  /** The natural-language answer text (may contain inline citation markers). */
+  /** The natural-language answer text (contains inline citation markers). */
   text: string;
 
-  /** Structured citations referenced in the answer. */
+  /** Structured and verified citations referenced in the answer. */
   citations: Citation[];
+
+  /** Fabricated or invalid citation strings stripped or flagged during validation. */
+  invalidCitations: string[];
 
   /** The chunks that were injected into the LLM context. */
   retrievedChunks: RetrievalResult[];
 
   /** Confidence indicator — if retrieval quality is low, this is true. */
   lowConfidence: boolean;
+
+  /** Rationale for confidence rating or fallback response. */
+  confidenceReason?: string;
+
+  /** Whether a second multi-hop retrieval pass was triggered. */
+  multiHopTriggered: boolean;
 
   /** Model used for generation (e.g., "llama-3.3-70b-versatile"). */
   model: string;

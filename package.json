@@ -11,6 +11,7 @@
     "verify": "npx tsx scripts/verify-env.ts",
     "verify:ingestion": "npx tsx scripts/verify-ingestion.ts",
     "verify:retrieval": "npx tsx scripts/verify-retrieval.ts",
+    "verify:generation": "npx tsx scripts/verify-generation.ts",
     "setup": "npm run setup:grammars && npm run verify"
   },
   "dependencies": {

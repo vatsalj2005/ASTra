@@ -9,6 +9,7 @@
     "lint": "eslint",
     "setup:grammars": "npx tree-sitter build --wasm node_modules/tree-sitter-javascript -o grammars/tree-sitter-javascript.wasm && npx tree-sitter build --wasm node_modules/tree-sitter-typescript/typescript -o grammars/tree-sitter-typescript.wasm && npx tree-sitter build --wasm node_modules/tree-sitter-python -o grammars/tree-sitter-python.wasm",
     "verify": "npx tsx scripts/verify-env.ts",
+    "verify:ingestion": "npx tsx scripts/verify-ingestion.ts",
     "setup": "npm run setup:grammars && npm run verify"
   },
   "dependencies": {

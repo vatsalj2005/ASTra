@@ -47,13 +47,68 @@ export interface CodeChunk {
   symbolName?: string;
 
   /** What kind of code construct this chunk represents. */
-  symbolType?: "function" | "class" | "method" | "module";
+  symbolType?: "function" | "class" | "method" | "module" | "doc";
 
   /**
    * Embedding vector, populated during ingestion.
    * Stored separately in the vector DB; included here for pipeline convenience.
    */
   embedding?: number[];
+}
+
+/**
+ * Configurable rules for filtering files during repository ingestion.
+ */
+export interface FilterConfig {
+  /** Directories to exclude (e.g. node_modules, .git, dist). */
+  ignoredDirectories?: string[];
+
+  /** File extensions to exclude (e.g. .lock, .png, .exe). */
+  ignoredExtensions?: string[];
+
+  /** Exact filenames to exclude (e.g. package-lock.json). */
+  ignoredFilenames?: string[];
+
+  /** Extensions considered source code for parsing. */
+  allowedCodeExtensions?: string[];
+
+  /** Exact doc filenames to include (e.g. README.md). */
+  allowedDocFilenames?: string[];
+
+  /** Doc extensions to include (e.g. .md, .mdx). */
+  allowedDocExtensions?: string[];
+
+  /** Maximum file size in bytes to include (default: 500 KB). */
+  maxFileSizeBytes?: number;
+}
+
+/**
+ * Results returned by the ingestion pipeline.
+ */
+export interface IngestionResult {
+  /** Unique repository identifier (e.g., owner/repo). */
+  repoId: string;
+
+  /** Total number of files processed. */
+  fileCount: number;
+
+  /** Total number of chunks extracted and stored. */
+  chunkCount: number;
+
+  /** Languages detected in the processed repository. */
+  languages: string[];
+
+  /** Processing latency in milliseconds. */
+  timeTakenMs: number;
+
+  /** Summary of chunks grouped by symbolType. */
+  chunkSummary: {
+    functions: number;
+    classes: number;
+    methods: number;
+    modules: number;
+    docs: number;
+  };
 }
 
 /**

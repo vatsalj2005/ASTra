@@ -41,10 +41,12 @@ next-env.d.ts
 # The grammars/ directory itself is kept via .gitkeep.
 grammars/*.wasm
 
-# ===== Vector DB local data =====
-# ChromaDB stores data locally during development.
+# ===== Vector DB & Temporary Local Data =====
+# ChromaDB and temporary clones/vectors stored locally.
 chroma-data/
 .chromadb/
+tmp/
+temp-*/
 
 # ===== Python (if added later) =====
 __pycache__/

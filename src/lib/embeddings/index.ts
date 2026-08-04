@@ -108,6 +108,59 @@ export async function embedBatch(texts: string[]): Promise<number[][]> {
 }
 
 /**
+ * Format a CodeChunk for embedding by combining file path, symbol metadata,
+ * and content. Bare code snippets often lack context; adding file path and
+ * symbol name improves semantic retrieval matches significantly.
+ */
+export function formatChunkForEmbedding(chunk: import("@/types").CodeChunk): string {
+  const symbolHeader = chunk.symbolName
+    ? `| ${chunk.symbolType || "symbol"}: ${chunk.symbolName}`
+    : "";
+  return `File: ${chunk.filePath} ${symbolHeader}\n\n${chunk.content}`;
+}
+
+/**
+ * Batch embed CodeChunk objects with context enrichment.
+ *
+ * @param chunks - Array of CodeChunk objects.
+ * @param batchSize - Batch size for pipeline processing (default: 16).
+ * @returns Array of CodeChunk objects with their .embedding field populated.
+ */
+export async function embedChunks(
+  chunks: import("@/types").CodeChunk[],
+  batchSize = 16
+): Promise<import("@/types").CodeChunk[]> {
+  console.log(`\n🧠 Generating embeddings for ${chunks.length} chunks...`);
+  const start = performance.now();
+
+  const enrichedTexts = chunks.map(formatChunkForEmbedding);
+  const embeddings: number[][] = [];
+
+  for (let i = 0; i < enrichedTexts.length; i += batchSize) {
+    const batch = enrichedTexts.slice(i, i + batchSize);
+    const batchEmbeddings = await embedBatch(batch);
+    embeddings.push(...batchEmbeddings);
+
+    const progress = Math.min(i + batchSize, chunks.length);
+    if (chunks.length > 20 && (progress % 32 === 0 || progress === chunks.length)) {
+      console.log(`   Embedded ${progress}/${chunks.length} chunks...`);
+    }
+  }
+
+  const elapsedMs = Math.round(performance.now() - start);
+  console.log(
+    `   Generated ${embeddings.length} embeddings in ${elapsedMs}ms (${(
+      elapsedMs / (chunks.length || 1)
+    ).toFixed(1)}ms/chunk)`
+  );
+
+  return chunks.map((chunk, idx) => ({
+    ...chunk,
+    embedding: embeddings[idx],
+  }));
+}
+
+/**
  * Get the configured model name. Useful for health checks and logging.
  */
 export function getModelName(): string {

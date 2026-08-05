@@ -37,6 +37,19 @@ const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   ".ts": "typescript",
   ".tsx": "typescript",
   ".py": "python",
+  ".go": "go",
+  ".rs": "rust",
+  ".java": "java",
+  ".cpp": "cpp",
+  ".c": "c",
+  ".cc": "cpp",
+  ".h": "c",
+  ".hpp": "cpp",
+  ".cs": "csharp",
+  ".rb": "ruby",
+  ".php": "php",
+  ".swift": "swift",
+  ".kt": "kotlin",
 };
 
 /**

@@ -19,7 +19,8 @@
  *   changing the interface.
  */
 
-import { pipeline } from "@xenova/transformers";
+import { pipeline, env } from "@xenova/transformers";
+import os from "os";
 import { loadEnv } from "@/lib/env";
 
 // ---------------------------------------------------------------------------
@@ -27,6 +28,11 @@ import { loadEnv } from "@/lib/env";
 // ---------------------------------------------------------------------------
 
 loadEnv();
+
+// Set WASM threads to use CPU cores (leaving one free for the event loop)
+if (env.backends?.onnx?.wasm) {
+  env.backends.onnx.wasm.numThreads = Math.max(1, os.cpus().length - 1);
+}
 
 const DEFAULT_MODEL = process.env.EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
 

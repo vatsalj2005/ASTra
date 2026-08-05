@@ -4,7 +4,7 @@
  * Responsibilities:
  * 1. Walk directory tree recursively.
  * 2. Filter files based on configurable rules (ignore lists, size caps, allowed extensions).
- * 3. Include source code files (.py, .js, .ts, .jsx, .tsx), README, and markdown docs.
+ * 3. Include source code files, configuration/data files, and documentation files across ALL subdirectories.
  * 4. Exclude binaries, images, lockfiles, minified files, node_modules, and build outputs.
  */
 
@@ -73,12 +73,25 @@ export const DEFAULT_FILTER_CONFIG: Required<FilterConfig> = {
     "Thumbs.db",
   ],
   allowedCodeExtensions: [
+    // Web & UI
     ".js",
     ".jsx",
     ".mjs",
     ".cjs",
     ".ts",
     ".tsx",
+    ".html",
+    ".css",
+    ".scss",
+    // Data & Config
+    ".json",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".csv",
+    ".sql",
+    ".graphql",
+    // Major Languages
     ".py",
     ".go",
     ".rs",
@@ -94,9 +107,9 @@ export const DEFAULT_FILTER_CONFIG: Required<FilterConfig> = {
     ".swift",
     ".kt",
   ],
-  allowedDocFilenames: ["README.md", "readme.md", "README"],
-  allowedDocExtensions: [".md", ".mdx"],
-  maxFileSizeBytes: 500 * 1024, // 500 KB per file
+  allowedDocFilenames: ["README.md", "readme.md", "README", "LICENSE", "CHANGELOG.md"],
+  allowedDocExtensions: [".md", ".mdx", ".rst", ".txt"],
+  maxFileSizeBytes: 2 * 1024 * 1024, // 2 MB per file
 };
 
 // ---------------------------------------------------------------------------
@@ -159,8 +172,8 @@ export function shouldIncludeFile(
   try {
     const stats = fs.statSync(fullPath);
     if (stats.size > config.maxFileSizeBytes) {
-      const sizeKB = (stats.size / 1024).toFixed(1);
-      return { include: false, reason: `File size exceeds cap (${sizeKB} KB)` };
+      const sizeMB = (stats.size / (1024 * 1024)).toFixed(1);
+      return { include: false, reason: `File size exceeds cap (${sizeMB} MB)` };
     }
   } catch {
     return { include: false, reason: "Unreadable file stats" };
@@ -171,17 +184,13 @@ export function shouldIncludeFile(
     return { include: true };
   }
 
-  // 6. Check allowed doc filenames / doc extensions
+  // 6. Check allowed doc filenames / doc extensions (in ANY directory!)
   if (config.allowedDocFilenames.includes(fileName)) {
     return { include: true };
   }
 
   if (config.allowedDocExtensions.includes(ext)) {
-    // Only include markdown files if they are in docs/ directory or root directory
-    const dir = path.dirname(relativePath);
-    if (dir === "." || dir.startsWith("docs") || dir.startsWith("doc")) {
-      return { include: true };
-    }
+    return { include: true };
   }
 
   return { include: false, reason: "Extension not in allowlist" };

@@ -204,16 +204,32 @@ export async function fetchRepository(
   };
 }
 
-/**
- * Remove a temporary cloned repository directory.
- */
 export function cleanupRepository(repoDir: string): void {
   if (fs.existsSync(repoDir)) {
     try {
-      fs.rmSync(repoDir, { recursive: true, force: true });
+      fs.rmSync(repoDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
       console.log(`🧹 Cleaned up temporary repository folder: ${repoDir}`);
-    } catch (err) {
-      console.warn(`Warning: Could not delete ${repoDir}:`, err);
+    } catch {
+      // Fallback for Windows read-only .git files: clear read-only permissions
+      try {
+        const makeWritable = (dir: string) => {
+          const files = fs.readdirSync(dir, { withFileTypes: true });
+          for (const f of files) {
+            const p = path.join(dir, f.name);
+            try {
+              fs.chmodSync(p, 0o777);
+            } catch {
+              // Ignore individual chmod failures
+            }
+            if (f.isDirectory()) makeWritable(p);
+          }
+        };
+        makeWritable(repoDir);
+        fs.rmSync(repoDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 300 });
+        console.log(`🧹 Cleaned up temporary repository folder: ${repoDir}`);
+      } catch (err) {
+        console.warn(`Warning: Could not delete ${repoDir}:`, err);
+      }
     }
   }
 }

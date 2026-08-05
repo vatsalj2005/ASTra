@@ -12,7 +12,7 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 export function ChatWindow() {
-  const { messages, sendQuestion, isLoadingAnswer, repoId } = useRepo();
+  const { messages, sendQuestion, isLoadingAnswer, repoId, error, clearError } = useRepo();
   const [inputText, setInputText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -86,6 +86,23 @@ export function ChatWindow() {
 
       {/* Prompt Input Box */}
       <div className="pb-6 pt-2 sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-white/5">
+        {error && (
+          <div className="mb-3.5 p-4 rounded-xl bg-error/10 border border-error/25 text-xs font-mono text-error flex items-start justify-between gap-3 animate-fade-in-up">
+            <div className="flex gap-2">
+              <span className="mt-0.5">⚠️</span>
+              <p className="leading-relaxed flex-1">
+                {error}
+              </p>
+            </div>
+            <button
+              onClick={clearError}
+              className="text-text-muted hover:text-text-primary transition-colors cursor-pointer font-bold px-1.5 hover:bg-white/5 rounded-md text-sm"
+              title="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="relative">
           <div className="relative rounded-2xl bg-bg-secondary/80 border border-white/5 p-1 transition-all duration-300 focus-within:border-accent-primary/40 focus-within:ring-2 focus-within:ring-accent-primary/10 shadow-lg">
             <textarea

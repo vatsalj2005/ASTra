@@ -114,6 +114,11 @@ export async function callGroqLLM(
       }
 
       if (attempt >= MAX_RETRIES) {
+        if (isRateLimit) {
+          throw new Error(
+            `Groq Rate/Token Limit Exceeded: The codebase context required for this query is larger than your Groq API key's Tokens Per Minute (TPM) limit. Please wait a minute, use a smaller repository, or upgrade your Groq API key.`
+          );
+        }
         throw new Error(
           `Groq API call failed after ${MAX_RETRIES} attempts (${currentModel}): ${errorMessage}`
         );

@@ -1,8 +1,24 @@
-# ASTra — Ask My Codebase (AST-Aware Code RAG)
+<p align="center">
+  <img src="public/logo.png" alt="ASTra Logo" width="480" />
+</p>
 
-ASTra is a production-grade, local-first RAG (Retrieval-Augmented Generation) system built using Next.js (App Router), TypeScript, and web-tree-sitter. It allows users to ingest any public GitHub repository, parse its syntax trees, perform hybrid search (vector similarity + BM25 keyword matching), and obtain natural-language explanations with exact, audited `file:line` citations.
+<h1 align="center">ASTra — Ask My Codebase (AST-Aware Code RAG)</h1>
 
-This system is fully self-contained in TypeScript, utilizing a local WebAssembly-based parser and a local ONNX-based embedding extractor to ensure zero native dependencies, zero installation friction, and zero API costs for core pipeline steps.
+<p align="center">
+  <strong>ASTra</strong> is a production-grade, local-first RAG (Retrieval-Augmented Generation) system built using Next.js (App Router), TypeScript, and web-tree-sitter. It allows users to ingest any public GitHub repository, parse its syntax trees, perform hybrid search (vector similarity + BM25 keyword matching), and obtain natural-language explanations with exact, audited <code>file:line</code> citations.
+</p>
+
+<p align="center">
+  This system is fully self-contained in TypeScript, utilizing a local WebAssembly-based parser and a local ONNX-based embedding extractor to ensure zero native dependencies, zero installation friction, and zero API costs for core pipeline steps.
+</p>
+
+<p align="center">
+  <a href="#architecture-overview">Architecture Overview</a> •
+  <a href="#core-features">Core Features</a> •
+  <a href="#complete-technology-stack">Technology Stack</a> •
+  <a href="#local-setup--quick-start">Local Setup</a> •
+  <a href="#verification--testing-scripts">Testing Scripts</a>
+</p>
 
 ---
 

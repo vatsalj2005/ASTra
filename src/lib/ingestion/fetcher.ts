@@ -16,7 +16,7 @@ import fs from "fs";
 // Configuration
 // ---------------------------------------------------------------------------
 
-const DEFAULT_MAX_REPO_SIZE_BYTES = 200 * 1024 * 1024; // 200 MB
+const DEFAULT_MAX_REPO_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB (Enforced for safe local demo ingestion)
 const TEMP_REPOS_DIR = path.resolve(process.cwd(), "tmp", "repos");
 
 // ---------------------------------------------------------------------------

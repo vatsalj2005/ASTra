@@ -13,57 +13,59 @@ export function RetrievedChunksPanel({ chunks }: RetrievedChunksPanelProps) {
   if (!chunks || chunks.length === 0) return null;
 
   return (
-    <div className="mt-3 pt-3 border-t border-slate-800/60 font-sans text-xs">
+    <div className="mt-4 pt-3.5 border-t border-white/5 font-sans text-xs">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 font-mono text-slate-400 hover:text-blue-400 transition-colors py-1 group"
+        className="flex items-center gap-2 font-mono text-text-muted hover:text-accent-primary transition-colors py-1 group cursor-pointer"
       >
-        <span className="text-sm transition-transform duration-200" style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}>
+        <span className="text-[10px] transition-transform duration-300" style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}>
           ▶
         </span>
-        <span className="font-semibold text-[11px] uppercase tracking-wider text-slate-300 group-hover:text-blue-300">
-          🔍 View Grounded Source Chunks ({chunks.length})
+        <span className="font-bold text-[10px] uppercase tracking-wider text-text-secondary group-hover:text-accent-primary transition-colors">
+          🔍 Grounded Context Chunks ({chunks.length})
         </span>
       </button>
 
       {isOpen && (
-        <div className="mt-3 space-y-3 pl-2">
+        <div className="mt-3.5 space-y-3.5 pl-1.5 animate-fade-in-up">
           {chunks.map((item, idx) => {
             const chunk = item.chunk;
-            const sourceBadge =
-              item.source === "hybrid"
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                : item.source === "semantic"
-                ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                : "bg-amber-500/10 text-amber-400 border-amber-500/20";
+            
+            // Source style logic
+            let sourceBadge = "bg-accent-primary/10 text-accent-primary border-accent-primary/20";
+            if (item.source === "hybrid") {
+              sourceBadge = "bg-gradient-to-r from-success/20 to-teal-500/20 text-success border-success/30";
+            } else if (item.source === "bm25") {
+              sourceBadge = "bg-warning/10 text-warning border-warning/20";
+            }
 
             return (
               <div
                 key={chunk.id || idx}
-                className="rounded-xl bg-slate-950/80 border border-slate-800/80 p-3 text-xs font-mono"
+                className="rounded-2xl bg-bg-primary border border-white/5 p-4 text-xs font-mono shadow-inner hover:border-white/10 transition-all duration-300"
               >
                 {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-800/50">
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="text-slate-200 font-bold">
+                <div className="flex flex-wrap items-center justify-between gap-3.5 mb-3 pb-2.5 border-b border-white/5">
+                  <div className="flex flex-wrap items-center gap-2 truncate">
+                    <span className="text-text-primary font-bold text-[11px] sm:text-xs">
                       {chunk.filePath}
                     </span>
-                    <span className="text-slate-500">
+                    <span className="text-text-muted text-[10px]">
                       Lines {chunk.startLine}-{chunk.endLine}
                     </span>
                     {chunk.symbolName && (
-                      <span className="text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded text-[10px]">
+                      <span className="text-accent-secondary bg-accent-secondary/10 px-2 py-0.5 rounded-lg border border-accent-secondary/10 text-[9px] font-bold uppercase tracking-wide">
                         {chunk.symbolType}: {chunk.symbolName}
                       </span>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${sourceBadge}`}>
+                    <span className={`text-[9px] uppercase font-extrabold px-2 py-0.5 rounded-lg border tracking-wider ${sourceBadge}`}>
                       {item.source}
                     </span>
                     {item.rrfScore && (
-                      <span className="text-slate-400 text-[10px]">
+                      <span className="text-text-muted text-[9px] font-semibold">
                         RRF: {item.rrfScore.toFixed(4)}
                       </span>
                     )}
@@ -71,7 +73,7 @@ export function RetrievedChunksPanel({ chunks }: RetrievedChunksPanelProps) {
                 </div>
 
                 {/* Code Snippet Box */}
-                <pre className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/50 text-[11px] text-slate-300 overflow-x-auto max-h-48 leading-relaxed font-mono">
+                <pre className="p-3.5 rounded-xl bg-bg-secondary/70 border border-white/5 text-[11px] text-text-secondary overflow-x-auto max-h-48 leading-relaxed font-mono custom-scrollbar">
                   <code>{chunk.content}</code>
                 </pre>
               </div>

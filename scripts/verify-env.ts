@@ -10,6 +10,9 @@
  */
 
 import path from "path";
+import { loadEnv } from "../src/lib/env";
+
+loadEnv();
 
 // ANSI color codes for terminal output
 const GREEN = "\x1b[32m";

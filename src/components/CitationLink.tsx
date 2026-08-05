@@ -28,11 +28,11 @@ export function CitationLink({ filePath, startLine, endLine }: CitationLinkProps
       target="_blank"
       rel="noopener noreferrer"
       title={`Open ${displayTag} on GitHub`}
-      className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-400 px-2 py-0.5 rounded transition-all cursor-pointer mx-1 align-baseline group"
+      className="inline-flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] font-semibold text-accent-primary bg-accent-primary/10 hover:bg-accent-primary/20 border border-accent-primary/20 hover:border-accent-primary px-2.5 py-0.5 rounded-lg transition-all cursor-pointer mx-1 align-baseline group shadow-sm active:scale-95"
     >
-      <span className="text-blue-400 group-hover:scale-110 transition-transform">📄</span>
+      <span className="text-[10px] transform group-hover:scale-110 transition-transform">📄</span>
       <span>{displayTag}</span>
-      <span className="text-[10px] text-blue-300/60">↗</span>
+      <span className="text-[9px] text-accent-primary/60 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">↗</span>
     </a>
   );
 }

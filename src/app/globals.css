@@ -1,13 +1,99 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b0f17;
-  --foreground: #f3f4f6;
+  --background: #05070c;
+  --foreground: #f1f5f9;
+  
+  --bg-primary: #05070c;
+  --bg-secondary: #0a0d16;
+  --bg-tertiary: #101422;
+  
+  --accent-primary: #06b6d4; /* cyan-500 */
+  --accent-secondary: #6366f1; /* indigo-500 */
+  --accent-glow: rgba(6, 182, 212, 0.12);
+  --accent-glow-strong: rgba(6, 182, 212, 0.25);
+  
+  --card-bg: rgba(10, 13, 22, 0.45);
+  --card-border: rgba(255, 255, 255, 0.04);
+  --card-border-hover: rgba(6, 182, 212, 0.2);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #f43f5e;
+}
+
+.theme-amethyst {
+  --background: #05020a;
+  --bg-primary: #05020a;
+  --bg-secondary: #0d0716;
+  --bg-tertiary: #160c24;
+  
+  --accent-primary: #d946ef; /* fuchsia-500 */
+  --accent-secondary: #8b5cf6; /* violet-500 */
+  --accent-glow: rgba(217, 70, 239, 0.12);
+  --accent-glow-strong: rgba(217, 70, 239, 0.25);
+  
+  --card-bg: rgba(13, 7, 22, 0.45);
+  --card-border: rgba(255, 255, 255, 0.04);
+  --card-border-hover: rgba(217, 70, 239, 0.2);
+}
+
+.theme-aurora {
+  --background: #020605;
+  --bg-primary: #020605;
+  --bg-secondary: #06120e;
+  --bg-tertiary: #0c2018;
+  
+  --accent-primary: #10b981; /* emerald-500 */
+  --accent-secondary: #14b8a6; /* teal-500 */
+  --accent-glow: rgba(16, 185, 129, 0.12);
+  --accent-glow-strong: rgba(16, 185, 129, 0.25);
+  
+  --card-bg: rgba(6, 18, 14, 0.45);
+  --card-border: rgba(255, 255, 255, 0.04);
+  --card-border-hover: rgba(16, 185, 129, 0.2);
+}
+
+.theme-solar {
+  --background: #050402;
+  --bg-primary: #050402;
+  --bg-secondary: #120e06;
+  --bg-tertiary: #1e170c;
+  
+  --accent-primary: #f59e0b; /* amber-500 */
+  --accent-secondary: #f97316; /* orange-500 */
+  --accent-glow: rgba(245, 158, 11, 0.12);
+  --accent-glow-strong: rgba(245, 158, 11, 0.25);
+  
+  --card-bg: rgba(18, 14, 6, 0.45);
+  --card-border: rgba(255, 255, 255, 0.04);
+  --card-border-hover: rgba(245, 158, 11, 0.2);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-glow-strong: var(--accent-glow-strong);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-card-border-hover: var(--card-border-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -17,6 +103,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* Custom Scrollbar */
@@ -25,12 +112,84 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f17;
+  background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--bg-tertiary);
   border-radius: 9999px;
+  border: 1px solid var(--card-border);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--accent-secondary);
+}
+
+/* Custom Glassmorphism Card Style */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 8px 32px 0 var(--accent-glow);
+}
+
+/* Custom Animations */
+@keyframes float-blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob-slow {
+  animation: float-blob 20s infinite ease-in-out;
+}
+
+.animate-blob-slower {
+  animation: float-blob 25s infinite ease-in-out reverse;
+}
+
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: slide-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes border-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.shimmer-border {
+  background-size: 200% auto;
+  animation: border-shimmer 3s linear infinite;
 }

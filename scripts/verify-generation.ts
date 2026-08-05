@@ -12,6 +12,9 @@
  * 2. Out-of-Scope Question: Verifies pre-generation low-confidence safeguard (returns fallback without forcing LLM to guess).
  */
 
+import { loadEnv } from "../src/lib/env";
+loadEnv();
+
 import { ingestRepository } from "../src/lib/ingestion";
 import { generateAnswer } from "../src/lib/generation";
 

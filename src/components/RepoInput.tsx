@@ -4,12 +4,13 @@ import React, { useState } from "react";
 import { useRepo } from "@/context/RepoContext";
 
 const SAMPLE_REPOS = [
+  { name: "vatsalj2005/ASTra (This App)", url: "https://github.com/vatsalj2005/ASTra" },
   { name: "expressjs/express-paginate", url: "https://github.com/expressjs/express-paginate" },
   { name: "octocat/Hello-World", url: "https://github.com/octocat/Hello-World" },
 ];
 
 export function RepoInput() {
-  const { startIngestion, error, clearError } = useRepo();
+  const { startIngestion, error, clearError, activeTheme } = useRepo();
   const [inputUrl, setInputUrl] = useState("");
   const [validationError, setValidationError] = useState("");
 
@@ -39,32 +40,68 @@ export function RepoInput() {
     startIngestion(url);
   };
 
+  // Select blob gradient based on active theme
+  const getBlobClasses = () => {
+    switch (activeTheme) {
+      case "amethyst":
+        return {
+          left: "bg-fuchsia-500/15",
+          right: "bg-violet-500/15",
+        };
+      case "aurora":
+        return {
+          left: "bg-emerald-500/15",
+          right: "bg-teal-500/15",
+        };
+      case "solar":
+        return {
+          left: "bg-amber-500/15",
+          right: "bg-orange-500/15",
+        };
+      default:
+        return {
+          left: "bg-cyan-500/15",
+          right: "bg-indigo-500/15",
+        };
+    }
+  };
+
+  const blobs = getBlobClasses();
+
   return (
-    <div className="w-full max-w-2xl mx-auto my-auto p-6 sm:p-8">
+    <div className="w-full max-w-4xl mx-auto my-auto p-6 sm:p-8 flex flex-col items-center justify-center relative min-h-[calc(100vh-10rem)]">
+      {/* Decorative Floating Blobs */}
+      <div className={`absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full ${blobs.left} blur-3xl pointer-events-none animate-blob-slow`} />
+      <div className={`absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-80 h-80 rounded-full ${blobs.right} blur-3xl pointer-events-none animate-blob-slower`} />
+
       {/* Glass Container Card */}
-      <div className="relative rounded-2xl bg-slate-900/60 border border-slate-800/80 p-8 shadow-2xl backdrop-blur-xl">
-        <div className="absolute -top-12 -left-12 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="glass-card relative rounded-3xl p-8 sm:p-12 w-full max-w-2xl overflow-hidden transition-all duration-500 z-10">
+        {/* Top Decorative Border Light */}
+        <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-accent-primary/60 to-transparent" />
 
         {/* Title & Subtitle */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-mono text-blue-400 mb-4">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-primary/10 border border-accent-primary/20 text-[11px] font-mono text-accent-primary mb-4 transition-all duration-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-ping" />
             <span>✨ Zero-Hallucination Code RAG</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
-            Chat with any GitHub repository
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-text-primary tracking-tight mb-4 leading-tight font-sans">
+            Chat with your codebase, <br />
+            <span className="bg-gradient-to-r from-accent-primary to-accent-secondary bg-clip-text text-transparent">
+              grounded in reality.
+            </span>
           </h1>
-          <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-            Ingest source code, parse AST syntax trees, perform hybrid vector + keyword search, and get grounded answers with clickable citations.
+          <p className="text-xs sm:text-sm text-text-secondary max-w-md mx-auto leading-relaxed">
+            Paste a public GitHub repo. We clone it, parse its AST, index vectors locally, and answer queries with exact file:line citations.
           </p>
         </div>
 
         {/* URL Form Input */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="relative">
             <div className="relative flex items-center">
               {/* GitHub Icon */}
-              <div className="absolute left-4 text-slate-400 pointer-events-none">
+              <div className="absolute left-4 text-text-muted pointer-events-none">
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                   <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                 </svg>
@@ -73,41 +110,47 @@ export function RepoInput() {
               <input
                 type="text"
                 value={inputUrl}
-                onChange={(e) => setInputUrl(e.target.value)}
+                onChange={(e) => {
+                  setInputUrl(e.target.value);
+                  setValidationError("");
+                }}
                 placeholder="https://github.com/owner/repository"
-                className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-12 pr-32 py-3.5 text-sm text-white placeholder-slate-500 font-mono focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                className="w-full bg-bg-primary/80 border border-white/5 rounded-xl pl-12 pr-32 py-4 text-sm text-text-primary placeholder-text-muted font-mono focus:outline-none focus:border-accent-primary/50 focus:ring-1 focus:ring-accent-primary/20 transition-all duration-300"
               />
 
               <button
                 type="submit"
-                className="absolute right-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs rounded-lg transition-all shadow-md shadow-blue-500/20 active:scale-95 flex items-center gap-1.5"
+                className="absolute right-2 px-5 py-2.5 bg-gradient-to-r from-accent-primary to-accent-secondary hover:brightness-110 text-white font-mono font-bold text-xs rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
               >
                 <span>Ingest</span>
-                <span>→</span>
+                <span className="text-[10px]">➔</span>
               </button>
             </div>
 
             {(validationError || error) && (
-              <p className="mt-2 text-xs font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg">
-                ⚠️ {validationError || error}
-              </p>
+              <div className="mt-3 p-3.5 rounded-xl bg-error/10 border border-error/20 text-xs font-mono text-error flex items-start gap-2.5 animate-fade-in-up">
+                <span>⚠️</span>
+                <p className="flex-1 leading-relaxed">
+                  {validationError || error}
+                </p>
+              </div>
             )}
           </div>
         </form>
 
         {/* Quick Try Sample Repos */}
-        <div className="mt-6 pt-6 border-t border-slate-800/80">
-          <p className="text-xs font-mono text-slate-400 mb-3 text-center">
-            Or try a sample public repository:
+        <div className="mt-8 pt-8 border-t border-white/5">
+          <p className="text-[11px] font-mono text-text-muted mb-4 text-center tracking-wide uppercase">
+            Or select a demo repository:
           </p>
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-3">
             {SAMPLE_REPOS.map((repo) => (
               <button
                 key={repo.name}
                 onClick={() => handleSampleClick(repo.url)}
-                className="text-xs font-mono text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/60 hover:border-blue-500/40 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 group"
+                className="text-xs font-mono text-text-secondary bg-bg-secondary/40 hover:bg-bg-secondary hover:text-accent-primary border border-white/5 hover:border-accent-primary/30 px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-2 group cursor-pointer"
               >
-                <span className="text-blue-400 group-hover:scale-110 transition-transform">⚡</span>
+                <span className="text-accent-primary opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">⚡</span>
                 <span>{repo.name}</span>
               </button>
             ))}

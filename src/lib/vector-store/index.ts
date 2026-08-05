@@ -15,9 +15,13 @@ import fs from "fs";
 import path from "path";
 import type { CodeChunk } from "@/types";
 
+import { loadEnv } from "@/lib/env";
+
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
+
+loadEnv();
 
 const CHROMA_URL = process.env.CHROMA_URL || "http://localhost:8000";
 const COLLECTION_NAME = "astra_chunks";
@@ -61,11 +65,15 @@ function loadLocalStore(): LocalStoredChunk[] {
 }
 
 function saveLocalStore(chunks: LocalStoredChunk[]): void {
-  const dir = path.dirname(LOCAL_STORE_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    const dir = path.dirname(LOCAL_STORE_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(LOCAL_STORE_FILE, JSON.stringify(chunks, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Failed to write to local vector store file:", err);
   }
-  fs.writeFileSync(LOCAL_STORE_FILE, JSON.stringify(chunks, null, 2), "utf-8");
 }
 
 function cosineSimilarity(vecA: number[], vecB: number[]): number {

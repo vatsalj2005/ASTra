@@ -1,199 +1,206 @@
-# ASTra — Ask My Codebase
+# ASTra — Ask My Codebase (AST-Aware Code RAG)
 
-> Chat with any public GitHub repository in natural language. Get answers grounded in real code with file:line citations — not hallucinations.
+ASTra is a production-grade, local-first RAG (Retrieval-Augmented Generation) system built using Next.js (App Router), TypeScript, and web-tree-sitter. It allows users to ingest any public GitHub repository, parse its syntax trees, perform hybrid search (vector similarity + BM25 keyword matching), and obtain natural-language explanations with exact, audited `file:line` citations.
 
-[![Built with Next.js](https://img.shields.io/badge/Next.js-App_Router-black?logo=next.js)](https://nextjs.org)
-[![LLM: Groq](https://img.shields.io/badge/LLM-Groq_Llama_3.3-orange)](https://console.groq.com)
-[![Embeddings: Local](https://img.shields.io/badge/Embeddings-all--MiniLM--L6--v2-blue)](https://huggingface.co/Xenova/all-MiniLM-L6-v2)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+This system is fully self-contained in TypeScript, utilizing a local WebAssembly-based parser and a local ONNX-based embedding extractor to ensure zero native dependencies, zero installation friction, and zero API costs for core pipeline steps.
 
 ---
 
-## What Is This?
-
-Paste a public GitHub repo URL → the system ingests the entire codebase → you ask natural-language questions → you get answers with **exact file:line citations** pointing to the source code.
-
-This is a **production-grade RAG (Retrieval-Augmented Generation)** system, not a basic tutorial clone. Key differentiators:
-
-| Feature | Why It Matters |
-|---|---|
-| **AST-aware chunking** (tree-sitter) | Code is split by function/class boundaries, not arbitrary character counts. Every retrieval hit is a complete, coherent unit of code. |
-| **Hybrid retrieval** (semantic + BM25) | Semantic search catches paraphrases ("authentication" ↔ "login"). BM25 catches exact identifiers (`handleOAuth2Callback`). Together they outperform either alone. |
-| **Grounded citations** | Every claim in an answer cites `file:line`. The LLM is instructed to say "I don't know" when retrieval confidence is low. |
-| **Multi-hop retrieval** | If an answer references another function/file, the system automatically does a second retrieval pass to gather full context. |
-
----
-
-## Architecture
+## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         FRONTEND (Next.js)                      │
-│  Paste repo URL → Ingestion progress → Chat UI → Cited answers  │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
-           ┌────────────────┼────────────────┐
-           ▼                ▼                ▼
-    ┌─────────────┐  ┌────────────┐  ┌──────────────┐
-    │  INGESTION   │  │ RETRIEVAL  │  │  GENERATION   │
-    │              │  │            │  │               │
-    │ Clone repo   │  │ Embed query│  │ Build prompt  │
-    │ Filter files │  │ Semantic   │  │ w/ retrieved  │
-    │ Parse AST    │  │  search    │  │ chunks +      │
-    │ Chunk by fn/ │  │ BM25 search│  │ file:line     │
-    │  class       │  │ RRF fusion │  │ metadata      │
-    │ Embed chunks │  │ Multi-hop  │  │ Call Groq LLM │
-    │ Store        │  │            │  │ Parse citations│
-    └──────┬───────┘  └─────┬──────┘  └──────┬────────┘
-           │                │                │
-           ▼                ▼                ▼
-    ┌─────────────────────────────────────────────┐
-    │         STORAGE (ChromaDB / Supabase)        │
-    │  Embeddings + BM25 index + chunk metadata    │
-    └─────────────────────────────────────────────┘
+ ┌─────────────────────────────────────────────────────────────────┐
+ │                       FRONTEND (Next.js 16)                     │
+ │  Repo Input Card ➔ Ingestion Dashboard ➔ Chat UI ➔ Code Drawer  │
+ └───────────────────────────────┬─────────────────────────────────┘
+                                 │ HTTP POST
+                                 ▼
+ ┌─────────────────────────────────────────────────────────────────┐
+ │                     INGESTION PIPELINE (Server)                 │
+ │  Git Fetcher (simple-git)  ➔  File Filter (Ignored files/size)  │
+ │  AST Parser (web-tree-sitter WASM)  ➔  Doc Section Chunker     │
+ │  Embeddings Engine (ONNX all-MiniLM-L6-v2) ➔ Vector DB / Local  │
+ └───────────────────────────────┬─────────────────────────────────┘
+                                 │ Search & Grounding
+                                 ▼
+ ┌─────────────────────────────────────────────────────────────────┐
+ │                      RETRIEVAL & GENERATION                     │
+ │  Semantic Vector Search  +  BM25 Keyword Search                 │
+ │              └──► Reciprocal Rank Fusion (RRF) ◄──┘             │
+ │  Confidence Threshold Guard ➔ Prompt Builder (File Inventory)   │
+ │  Groq LLM Client (Llama 3.3 70B) ➔ Citation Verification Audit  │
+ └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Tech Stack
+## Core Features
 
-Everything is **free-tier / open-source / locally-run**. No credit card required.
+- **AST-Aware Code Chunking**: Code files are parsed via `web-tree-sitter` WASM syntax tree extractors to carve code strictly along function, class, and method boundaries. No arbitrary token slicing.
+- **Hybrid Retrieval & RRF**: Merges Semantic Vector Search (concept matching) and BM25 Lexical Keyword Search (exact syntax/symbol matches) using the Reciprocal Rank Fusion (RRF) algorithm.
+- **Audited Citation Grounding**: Prevents hallucinations by mapping LLM-generated bracket citations against real source chunk ranges. Unverified claims are flagged; out-of-context queries trigger safe pre-generation refusals.
+- **Multi-Hop Reference Expansion**: Detects symbols and file dependencies mentioned in initial answers and triggers a secondary retrieval pass to gather missing code contexts automatically.
+- **Multi-Theme System**: Fully customizable theme selection directly in the header (Obsidian Space, Amethyst Midnight, Emerald Aurora, and Solar Flare).
+- **100% JavaScript/TypeScript Stack**: Single runtime, single `package.json`, and zero native C++ compiler requirements (`node-gyp` free).
 
-| Layer | Technology | Why This Choice |
+---
+
+## Complete Technology Stack
+
+| Layer | Dependency | Purpose |
 |---|---|---|
-| Framework | **Next.js** (App Router, TypeScript) | Full-stack in one project — SSR, API routes, React UI. Industry standard for portfolio projects. |
-| LLM | **Groq** (Llama 3.3 70B, free tier) | Fastest inference API, generous free tier. Swappable to Ollama for offline use. |
-| Embeddings | **@xenova/transformers** (all-MiniLM-L6-v2) | Runs locally via ONNX/WASM — zero API cost, ~384-dim vectors, excellent quality for code search. |
-| Code Parsing | **web-tree-sitter** (WASM) | AST parsing without native compilation. Supports JS, TS, Python (extensible). |
-| Vector Store | **ChromaDB** (local dev) / **Supabase pgvector** (production) | ChromaDB: zero setup for dev. Supabase: free hosted pgvector for demos. |
-| Keyword Search | **wink-bm25-text-search** | Robust JS-native BM25 for hybrid retrieval alongside vector search. |
-| Repo Cloning | **simple-git** | Programmatic git clone/fetch — handles shallow clones, branch selection. |
+| **Framework** | Next.js 16 (App Router), React 19, TypeScript | Server-side API endpoints, server-rendered layouts, and interactive client context states. |
+| **Styling** | Tailwind CSS v4, PostCSS | Dynamic style variables, responsive layouts, glassmorphic cards, and hardware-accelerated animations. |
+| **AST Parser** | `web-tree-sitter` (WASM Runtime) | Portable syntax tree parsing for JavaScript, TypeScript, and Python. |
+| **Embeddings** | `@xenova/transformers` (local ONNX/WASM) | Runs `all-MiniLM-L6-v2` locally to extract 384-dimensional normalized vector embeddings. |
+| **Vector Database** | ChromaDB (ChromaClient) / In-memory JSON Fallback | High-performance vector database support with immediate file-backed JSON fallback if no local container is active. |
+| **Keyword Ranker** | Custom Okapi BM25 Engine | Lexical ranker featuring code-aware tokenization and symbol boosting. |
+| **Repo Ingest** | `simple-git` | Programmatic git interface for shallow repository clones. |
+| **LLM Inference** | `groq-sdk` (Llama 3.3 70B Versatile) | Generates natural language answers based on grounded context prompt layouts. |
 
-### Why All-JavaScript? (No Python Sidecar)
+---
 
-The typical RAG tutorial uses Python for everything. We chose to keep the entire stack in JavaScript/TypeScript because:
+## Key Design Decisions & Tradeoffs
 
-1. **One runtime, one `package.json`, one deploy** — dramatically simpler for a solo developer.
-2. `@xenova/transformers` runs the same ONNX model as Python's `sentence-transformers`, just via WASM. For repo-scale data (thousands of chunks), the ~2-3x speed difference is negligible.
-3. `web-tree-sitter` provides the same AST parsing as native tree-sitter, without `node-gyp` headaches on Windows/CI.
-4. Portfolio reviewers can `git clone` → `npm install` → `npm run dev` with zero Python setup.
+### 1. Why AST-Based Chunking Over Naïve Text Splitting?
+Naïve text splitters (e.g. splitting every 1000 characters) cut code mid-expression, producing snippets like `return user.id;\n}\n\nfunction calculate`. Such fragments lack semantic meaning and degrade embedding quality. AST-aware chunking parses syntax trees to extract coherent units (classes, functions, methods) so that every retrieval hit represents a single, complete logical block of code.
 
-**Tradeoff**: If processing speed becomes a bottleneck on very large repos, Ollama embeddings or a Python subprocess can be swapped in without restructuring the codebase.
+### 2. Why Hybrid Retrieval Over Vector Search Alone?
+Pure semantic vector search is excellent at conceptual queries ("how are requests authenticated?") but often fails to locate exact code identifiers (e.g. `handleOAuth2CallbackV2`). Lexical engines like BM25 excel at exact matching. Combining them via Reciprocal Rank Fusion (RRF) ensures the retrieval engine catches both high-level concepts and exact keyword lookups.
+
+### 3. Why Strict Citation Grounding & Pre-Generation Confidence Checks?
+Generative models often hallucinate files or functions that do not exist. To enforce factuality, ASTra evaluates the maximum RRF retrieval score before calling the LLM; if the scores indicate a weak context match, it triggers an early refusal ("I couldn't find enough relevant information"). When generation is performed, the answer text is parsed and audited against the line numbers of the retrieved chunks to eliminate fabricated citations.
+
+---
+
+## Ingestion & Retrieval Mechanics
+
+### Ingestion Pipeline
+1. **Fetch**: Clones the public repository shallowly (`--depth 1`) using `simple-git`.
+2. **Filter & Guard**: Excludes binaries, build outputs, node modules, and large files. Aborts if total repo size exceeds **50MB** or if eligible files exceed **150 files** (guards for safe local demo experiences).
+3. **Parse & Chunk**: Routes files to tree-sitter grammars. Extracts functions, classes, and methods as chunks.
+4. **Embed**: Context-enriches the text (`File: {path} | symbol: {name}\n\n{content}`) and passes it to the local ONNX model.
+5. **Upsert**: Stores the vectors and metadata in ChromaDB or saves to `tmp/astra-vectors.json`.
+
+### Hybrid Retrieval & Fusion
+1. **Dual Querying**: Runs semantic similarity search and BM25 keyword matching in parallel.
+2. **Reciprocal Rank Fusion**: Reranks documents based on their position in both lists using:
+   $$\text{RRF Score}(d) = \sum_{m \in M} \frac{1}{60 + r_m(d)}$$
+3. **Confidence Scoring**: Analyzes the top RRF score to assign a confidence index and determine if generation should proceed.
+
+---
+
+## Local Setup & Quick Start
+
+### Prerequisites
+- **Node.js** ≥ 20.6.0 (tested on 22.x)
+- **npm** ≥ 10.x
+- **Groq API Key** (Free tier key available at [console.groq.com](https://console.groq.com))
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/vatsalj2005/ASTra.git
+cd ASTra
+npm install
+```
+
+### 2. Build Tree-Sitter WASM Grammars
+Compile the pre-configured grammars into WebAssembly binaries:
+```bash
+npm run setup:grammars
+```
+
+### 3. Setup Environment Configuration
+Copy the sample environment template:
+```bash
+cp .env.local.example .env.local
+```
+Edit `.env.local` and add your Groq API key:
+```env
+GROQ_API_KEY=gsk_your_groq_api_key_goes_here
+```
+
+### 4. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## Environment Variables Reference
+
+| Variable Name | Required | Default Value | Description |
+|---|---|---|---|
+| `GROQ_API_KEY` | **Yes** | None | Your Groq Cloud API Key for LLM Q&A inference. |
+| `CHROMA_URL` | No | `http://localhost:8000` | Address of your local ChromaDB container. If inactive, the app falls back to a local JSON file database. |
+| `EMBEDDING_MODEL` | No | `Xenova/all-MiniLM-L6-v2` | Embedding model identifier used by `@xenova/transformers`. |
+
+---
+
+## Verification & Testing Scripts
+
+ASTra contains a standalone CLI test suite to validate different components without launching the Next.js server:
+
+- **Verify Environment & Models**:
+  ```bash
+  npm run verify
+  ```
+- **Verify Ingestion Pipeline**:
+  ```bash
+  npx tsx scripts/verify-ingestion.ts [repoUrl]
+  ```
+- **Verify Retrieval Engine & RRF Rankers**:
+  ```bash
+  npx tsx scripts/verify-retrieval.ts [repoUrl]
+  ```
+- **Verify End-to-End Generation & Audited Citations**:
+  ```bash
+  npx tsx scripts/verify-generation.ts [repoUrl]
+  ```
 
 ---
 
 ## Project Structure
 
 ```
-src/
-├── app/                    # Next.js App Router
-│   ├── api/health/         # Health check endpoint
-│   ├── layout.tsx          # Root layout
-│   └── page.tsx            # Landing page
-│
-├── lib/                    # Core business logic (framework-agnostic)
-│   ├── ingestion/          # Repo cloning, file filtering, AST chunking
-│   ├── retrieval/          # Hybrid search (semantic + BM25), reranking
-│   ├── generation/         # LLM prompt construction, Groq API calls
-│   ├── embeddings/         # Embedding model wrapper (@xenova/transformers)
-│   ├── parser/             # Tree-sitter wrapper (web-tree-sitter WASM)
-│   └── vector-store/       # Storage abstraction (ChromaDB / Supabase)
-│
-└── types/                  # Shared TypeScript interfaces
-    └── index.ts            # CodeChunk, RetrievalResult, Citation, etc.
-
-scripts/
-└── verify-env.ts           # Standalone CLI health check
-
-grammars/                   # Tree-sitter WASM grammar files (built from source)
-```
-
-**Why `src/lib/`?** Business logic is isolated from the Next.js framework. Each module maps 1:1 to an architecture component, making the code self-documenting and independently testable.
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- **Node.js** ≥ 18 (tested on 24.x)
-- **npm** ≥ 9
-- **Docker** (optional — used by `tree-sitter build --wasm` if Emscripten isn't installed)
-
-### Setup
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/vatsalj2005/ASTra.git
-cd ASTra
-
-# 2. Install dependencies
-npm install
-
-# 3. Build tree-sitter WASM grammars
-npm run setup:grammars
-
-# 4. Create your environment file
-cp .env.local.example .env.local
-# Edit .env.local and add your Groq API key (get one free at https://console.groq.com)
-
-# 5. Start the dev server
-npm run dev
-
-# 6. Verify everything works
-# Option A: API health check
-curl http://localhost:3000/api/health
-
-# Option B: CLI verification
-npx tsx scripts/verify-env.ts
-```
-
-### Expected Health Check Response
-
-```json
-{
-  "status": "healthy",
-  "timestamp": "2026-08-05T...",
-  "checks": {
-    "nextjs": true,
-    "embedding": {
-      "ok": true,
-      "model": "Xenova/all-MiniLM-L6-v2",
-      "dimension": 384,
-      "latencyMs": 1200
-    },
-    "treeSitter": {
-      "ok": true,
-      "languages": ["javascript", "typescript", "python"],
-      "testNodeCount": 15
-    }
-  }
-}
+ASTra/
+├── grammars/               # Compiled Tree-sitter WASM grammars
+├── scripts/                # Standalone CLI verification suite
+├── src/
+│   ├── app/                # Next.js App Router Pages and API Endpoints
+│   │   ├── api/            # API Endpoints (ingest, chat, health)
+│   │   ├── globals.css     # Global Styles, CSS variables, and Animations
+│   │   └── layout.tsx      # App wrapper layout
+│   ├── components/         # Premium, Glassmorphic React Components
+│   ├── context/            # Global UI and Theme Context State
+│   ├── lib/                # Modular RAG Business Logic (Framework Agnostic)
+│   │   ├── embeddings/     # Transformers.js embedding wrapper
+│   │   ├── generation/     # Prompt constructions, Groq API, citation audits
+│   │   ├── ingestion/      # Git clone, file filters, and AST chunkers
+│   │   ├── parser/         # Web-tree-sitter parser initialization
+│   │   ├── retrieval/      # Semantic search, BM25 ranker, and RRF fusions
+│   │   └── vector-store/   # ChromaDB connections and JSON file fallbacks
+│   └── types/              # Unified TypeScript definitions
 ```
 
 ---
 
-## Roadmap
+## Current Scope Limitations
 
-- [x] **Phase 0**: Project skeleton — Next.js, dependencies, health checks, module stubs
-- [ ] **Phase 1**: Ingestion pipeline — clone repo, filter, parse AST, chunk, embed, store
-- [ ] **Phase 2**: Retrieval pipeline — semantic search, BM25, reciprocal rank fusion, multi-hop
-- [ ] **Phase 3**: Generation pipeline — prompt construction, Groq API, citation extraction
-- [ ] **Phase 4**: Frontend — paste-URL screen, ingestion progress, chat UI, cited answers
-- [ ] **Phase 5**: Polish — error handling, rate limiting, caching, performance tuning
+- **Git Auth**: Only public GitHub repositories are supported.
+- **Language Scope**: AST-aware chunking is implemented for JavaScript, TypeScript, and Python. Other programming languages fallback to module-level file chunking.
+- **Quantized Local Model**: The ONNX embedding model runs in single-thread WebAssembly, which can take 1–3 seconds to run embedding calculations for medium repos.
 
 ---
 
-## Design Decisions & Tradeoffs
+## Future Improvements
 
-### Why AST Chunking Over Fixed-Size Chunks?
-Fixed-size chunks (e.g., "split every 1000 characters") often break code mid-expression, producing fragments like `...return user.id;\n}\n\nfunction calculateTax(` that are meaningless in isolation. AST-aware chunking using tree-sitter ensures every chunk is a complete function, class, or method — a coherent unit that an LLM can reason about and that a developer can verify.
-
-### Why Hybrid Retrieval (Not Just Embeddings)?
-Pure semantic search misses exact identifiers. If a user asks "where is `handleOAuth2Callback` defined?", embedding similarity might surface generically related auth code but miss the exact function. BM25 lexical search catches these exact matches. Reciprocal Rank Fusion (RRF) merges both result sets, consistently outperforming either approach alone in retrieval benchmarks.
-
-### Why "Cite or Say I Don't Know"?
-RAG systems that allow unconstrained generation produce plausible-sounding but fabricated answers. By requiring file:line citations for every claim and instructing the model to decline when context is insufficient, we maintain the trust that makes a code Q&A tool actually useful.
+1. **Incremental Indexing**: Track commit hashes to only re-index files that have changed in subsequent repository updates.
+2. **Additional Tree-sitter Grammars**: Incorporate WASM files for Go, Rust, Java, and C++ AST-aware parsing.
+3. **Cross-Encoder Reranking**: Integrate a local cross-encoder model (e.g. `bge-reranker-base`) to rerank the top candidate chunks before feeding context to the LLM.
+4. **Streaming Completions**: Adapt the API routes and frontend context to support word-by-word streaming LLM completions for improved perceived latency.
+5. **Ingestion Cache**: Store extracted chunk structures in a local SQLite database to prevent redundant re-processing.
 
 ---
 

@@ -16,6 +16,9 @@
  * 6. Vector similarity retrieval probe to confirm stored data is queryable.
  */
 
+import { loadEnv } from "../src/lib/env";
+loadEnv();
+
 import { ingestRepository } from "../src/lib/ingestion";
 import { querySimilarChunks, getRepoChunkCount } from "../src/lib/vector-store";
 import { embedText } from "../src/lib/embeddings";

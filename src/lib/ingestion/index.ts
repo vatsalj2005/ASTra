@@ -53,6 +53,13 @@ export async function ingestRepository(
       throw new Error(`No eligible source or doc files found in repository "${repoId}".`);
     }
 
+    const MAX_FILES_LIMIT = 150;
+    if (fileList.length > MAX_FILES_LIMIT) {
+      throw new Error(
+        `Repository contains ${fileList.length} matching files, which exceeds the safe limit of ${MAX_FILES_LIMIT} files for local demo ingestion. Please try a smaller repository.`
+      );
+    }
+
     // 3. Clear previous chunks for clean re-ingestion
     await clearRepoChunks(repoId);
 

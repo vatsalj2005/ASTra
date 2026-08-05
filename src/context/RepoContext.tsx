@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import type { GeneratedAnswer, IngestionResult } from "@/types";
 
 export interface ChatMessage {
@@ -13,6 +13,8 @@ export interface ChatMessage {
 
 export type AppStage = "input" | "ingesting" | "chat";
 
+export type ThemeType = "obsidian" | "amethyst" | "aurora" | "solar";
+
 interface RepoContextType {
   stage: AppStage;
   repoUrl: string;
@@ -22,10 +24,12 @@ interface RepoContextType {
   isLoadingAnswer: boolean;
   ingestionProgressStep: string;
   error: string | null;
+  activeTheme: ThemeType;
   startIngestion: (url: string) => Promise<void>;
   sendQuestion: (question: string) => Promise<void>;
   resetRepo: () => void;
   clearError: () => void;
+  setTheme: (theme: ThemeType) => void;
 }
 
 const RepoContext = createContext<RepoContextType | undefined>(undefined);
@@ -39,6 +43,31 @@ export function RepoProvider({ children }: { children: ReactNode }) {
   const [isLoadingAnswer, setIsLoadingAnswer] = useState<boolean>(false);
   const [ingestionProgressStep, setIngestionProgressStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [activeTheme, setActiveThemeState] = useState<ThemeType>("obsidian");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("astra-theme") as ThemeType;
+    if (savedTheme && ["obsidian", "amethyst", "aurora", "solar"].includes(savedTheme)) {
+      setActiveThemeState(savedTheme);
+      applyTheme(savedTheme);
+    } else {
+      applyTheme("obsidian");
+    }
+  }, []);
+
+  const applyTheme = (themeName: ThemeType) => {
+    const root = document.documentElement;
+    root.classList.remove("theme-obsidian", "theme-amethyst", "theme-aurora", "theme-solar");
+    if (themeName !== "obsidian") {
+      root.classList.add(`theme-${themeName}`);
+    }
+  };
+
+  const setTheme = (themeName: ThemeType) => {
+    setActiveThemeState(themeName);
+    localStorage.setItem("astra-theme", themeName);
+    applyTheme(themeName);
+  };
 
   const startIngestion = async (url: string) => {
     setError(null);
@@ -155,10 +184,12 @@ export function RepoProvider({ children }: { children: ReactNode }) {
         isLoadingAnswer,
         ingestionProgressStep,
         error,
+        activeTheme,
         startIngestion,
         sendQuestion,
         resetRepo,
         clearError,
+        setTheme,
       }}
     >
       {children}

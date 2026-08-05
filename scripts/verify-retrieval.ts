@@ -13,6 +13,9 @@
  * 3. Hybrid RRF Search (Merged & Reranked + Confidence Signal)
  */
 
+import { loadEnv } from "../src/lib/env";
+loadEnv();
+
 import { ingestRepository } from "../src/lib/ingestion";
 import {
   searchSemantic,

@@ -20,10 +20,13 @@
  */
 
 import { pipeline } from "@xenova/transformers";
+import { loadEnv } from "@/lib/env";
 
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
+
+loadEnv();
 
 const DEFAULT_MODEL = process.env.EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
 

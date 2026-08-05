@@ -45,17 +45,19 @@ export function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto w-full px-4 sm:px-6 relative">
+    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto w-full px-4 sm:px-6 relative justify-between">
       {/* Scrollable Message List */}
-      <div className="flex-1 overflow-y-auto py-6 pr-2 space-y-4">
+      <div className="flex-1 overflow-y-auto py-6 pr-2 space-y-6 scroll-smooth">
         {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
+          <div key={msg.id} className="animate-fade-in-up">
+            <MessageBubble message={msg} />
+          </div>
         ))}
 
         {/* Loading Indicator */}
         {isLoadingAnswer && (
-          <div className="flex items-center gap-3 my-4 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 text-xs font-mono text-slate-400 animate-pulse">
-            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+          <div className="flex items-center gap-3.5 my-4 p-4.5 rounded-2xl bg-bg-secondary/40 border border-white/5 text-xs font-mono text-text-secondary animate-pulse shadow-md">
+            <div className="w-4 h-4 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
             <span>ASTra is performing hybrid retrieval & generating cited response...</span>
           </div>
         )}
@@ -65,16 +67,17 @@ export function ChatWindow() {
 
       {/* Suggested Questions */}
       {messages.length <= 1 && !isLoadingAnswer && (
-        <div className="mb-4">
-          <p className="text-[11px] font-mono text-slate-400 mb-2">Suggested questions for {repoId}:</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-4 animate-fade-in-up">
+          <p className="text-[10px] font-mono text-text-muted mb-2.5 uppercase tracking-wider">Suggested queries for {repoId}:</p>
+          <div className="flex flex-wrap gap-2.5">
             {SUGGESTED_QUESTIONS.map((sq) => (
               <button
                 key={sq}
                 onClick={() => handleSuggestedClick(sq)}
-                className="text-xs font-mono text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/40 px-3 py-1.5 rounded-lg transition-all text-left"
+                className="text-xs font-mono text-text-secondary bg-bg-secondary/40 hover:bg-bg-secondary border border-white/5 hover:border-accent-primary/30 px-3.5 py-2 rounded-xl transition-all duration-300 text-left active:scale-98 cursor-pointer flex items-center gap-1.5"
               >
-                💡 {sq}
+                <span>💡</span>
+                <span>{sq}</span>
               </button>
             ))}
           </div>
@@ -82,27 +85,29 @@ export function ChatWindow() {
       )}
 
       {/* Prompt Input Box */}
-      <div className="pb-6 pt-2 sticky bottom-0 bg-slate-950/80 backdrop-blur-md border-t border-slate-800/60">
+      <div className="pb-6 pt-2 sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-white/5">
         <form onSubmit={handleSubmit} className="relative">
-          <textarea
-            rows={2}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={`Ask anything about ${repoId || "this codebase"}... (Shift+Enter for new line)`}
-            className="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-4 pr-14 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
-          />
+          <div className="relative rounded-2xl bg-bg-secondary/80 border border-white/5 p-1 transition-all duration-300 focus-within:border-accent-primary/40 focus-within:ring-2 focus-within:ring-accent-primary/10 shadow-lg">
+            <textarea
+              rows={2}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={`Ask anything about ${repoId || "this codebase"}... (Shift+Enter for new line)`}
+              className="w-full bg-transparent border-0 rounded-xl pl-4 pr-16 py-3 text-sm text-text-primary placeholder-text-muted focus:outline-none focus:ring-0 transition-all resize-none font-sans"
+            />
 
-          <button
-            type="submit"
-            disabled={!inputText.trim() || isLoadingAnswer}
-            className="absolute right-3 bottom-4 p-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white rounded-lg transition-all shadow-md active:scale-95 flex items-center justify-center"
-            title="Send Question"
-          >
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-            </svg>
-          </button>
+            <button
+              type="submit"
+              disabled={!inputText.trim() || isLoadingAnswer}
+              className="absolute right-3.5 bottom-3.5 p-3 bg-gradient-to-r from-accent-primary to-accent-secondary disabled:opacity-40 disabled:pointer-events-none text-white rounded-xl transition-all shadow-md hover:brightness-110 active:scale-95 flex items-center justify-center cursor-pointer"
+              title="Send Question"
+            >
+              <svg className="w-4 h-4 fill-current transform rotate-90" viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+            </button>
+          </div>
         </form>
       </div>
 

@@ -54,32 +54,32 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   };
 
   return (
-    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} my-4`}>
-      <div className="flex items-center gap-2 mb-1 px-1 text-xs text-slate-400 font-mono">
-        <span className="font-semibold">{isUser ? "You" : "ASTra AI"}</span>
+    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} my-4 w-full`}>
+      <div className="flex items-center gap-2 mb-1.5 px-1.5 text-[10px] text-text-muted font-mono tracking-wide uppercase">
+        <span className="font-bold text-text-secondary">{isUser ? "You" : "ASTra AI"}</span>
         <span>•</span>
         <span>{message.timestamp}</span>
       </div>
 
       <div
-        className={`max-w-3xl rounded-2xl p-4 sm:p-5 text-sm leading-relaxed shadow-lg backdrop-blur-md ${
+        className={`max-w-3xl rounded-2xl p-5 sm:p-6 text-sm leading-relaxed shadow-xl backdrop-blur-xl transition-all duration-300 ${
           isUser
-            ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-medium rounded-tr-none"
+            ? "bg-gradient-to-br from-accent-primary to-accent-secondary text-white font-medium rounded-tr-none border-b border-white/10"
             : isRefusal
-            ? "bg-slate-900/90 border border-amber-500/30 text-slate-200 rounded-tl-none"
-            : "bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none"
+            ? "bg-bg-secondary/40 border border-error/20 text-text-primary rounded-tl-none"
+            : "bg-bg-secondary/40 border border-white/5 text-text-primary rounded-tl-none hover:border-white/10"
         }`}
       >
         {/* Low Confidence Warning Badge for Refusals */}
         {isRefusal && (
-          <div className="mb-3 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs font-mono text-amber-400 flex items-center gap-2">
-            <span>🛡️</span>
-            <span>Context Insufficient — Grounding Safeguard Triggered</span>
+          <div className="mb-3.5 px-3 py-2 rounded-xl bg-error/10 border border-error/25 text-xs font-mono text-error flex items-start gap-2 shadow-inner">
+            <span className="mt-0.5">🛡️</span>
+            <span className="leading-relaxed">Context Insufficient — Grounding Safeguard Triggered</span>
           </div>
         )}
 
         {/* Formatted Content */}
-        <div className="whitespace-pre-wrap font-sans text-slate-200">
+        <div className="whitespace-pre-wrap font-sans text-text-primary font-normal leading-relaxed selection:bg-accent-primary/20">
           {renderFormattedContent(message.content)}
         </div>
 
@@ -90,11 +90,17 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
         {/* Footer Metadata */}
         {!isUser && answerData && (
-          <div className="mt-3 pt-2 border-t border-slate-800/40 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-slate-500">
-            <span>Model: {answerData.model}</span>
-            <span>Latency: {answerData.latencyMs}ms</span>
+          <div className="mt-4 pt-3.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-[10px] font-mono text-text-muted">
+            <div className="flex items-center gap-3">
+              <span>Model: <span className="text-text-secondary font-semibold">{answerData.model}</span></span>
+              <span>•</span>
+              <span>Latency: <span className="text-text-secondary font-semibold">{answerData.latencyMs}ms</span></span>
+            </div>
             {answerData.multiHopTriggered && (
-              <span className="text-purple-400">🔁 Multi-hop Pass</span>
+              <span className="text-accent-primary bg-accent-primary/10 px-2 py-0.5 rounded border border-accent-primary/20 flex items-center gap-1.5 animate-pulse">
+                <span>🔁</span>
+                <span>Multi-hop Pass</span>
+              </span>
             )}
           </div>
         )}

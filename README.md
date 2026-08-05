@@ -77,7 +77,7 @@ Generative models often hallucinate files or functions that do not exist. To enf
 
 ### Ingestion Pipeline
 1. **Fetch**: Clones the public repository shallowly (`--depth 1`) using `simple-git`.
-2. **Filter & Guard**: Excludes binaries, build outputs, node modules, and large files. Aborts if total repo size exceeds **50MB** or if eligible files exceed **150 files** (guards for safe local demo experiences).
+2. **Filter & Guard**: Excludes binaries, build outputs, node modules, and large files. Aborts if total repository size exceeds **50MB** to ensure a safe local demo experience.
 3. **Parse & Chunk**: Routes files to tree-sitter grammars. Extracts functions, classes, and methods as chunks.
 4. **Embed**: Context-enriches the text (`File: {path} | symbol: {name}\n\n{content}`) and passes it to the local ONNX model.
 5. **Upsert**: Stores the vectors and metadata in ChromaDB or saves to `tmp/astra-vectors.json`.

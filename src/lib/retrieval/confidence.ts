@@ -9,8 +9,8 @@
 
 import type { ConfidenceSignal, RetrievalResult } from "@/types";
 
-// Minimum RRF score threshold required for acceptable confidence
-const MIN_RRF_SCORE_THRESHOLD = 0.014;
+// Minimum RRF score threshold required for acceptable confidence (0.010 allows top 20 candidate hits)
+const MIN_RRF_SCORE_THRESHOLD = 0.010;
 
 /**
  * Evaluate retrieval results and generate a confidence assessment.

@@ -2,8 +2,8 @@
  * Groq LLM Client Module for ASTra.
  *
  * Wraps groq-sdk with Llama 3.3 70B (llama-3.3-70b-versatile, free tier).
- * Features automatic retry logic with exponential backoff for 429 rate limits
- * and API timeouts.
+ * Features automatic model fallback (llama-3.1-8b-instant) & exponential backoff
+ * for rate limits (HTTP 413 / 429) and API timeouts.
  */
 
 import Groq from "groq-sdk";
@@ -34,7 +34,8 @@ function loadEnvLocal(): void {
   }
 }
 
-const DEFAULT_MODEL = "llama-3.3-70b-versatile";
+const PRIMARY_MODEL = "llama-3.3-70b-versatile";
+const FALLBACK_MODEL = "llama-3.1-8b-instant";
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY_MS = 1000;
 
@@ -76,7 +77,7 @@ export interface LLMResponse {
 }
 
 /**
- * Call Groq Llama 3.3 70B API with retry logic and error handling.
+ * Call Groq Llama 3.3 70B API with fallback to Llama 3.1 8B Instant on rate limits.
  *
  * @param messages - Chat messages array (system + user).
  * @param options - Generation options (temperature, maxTokens, model).
@@ -86,8 +87,8 @@ export async function callGroqLLM(
   options?: GenerationOptions
 ): Promise<LLMResponse> {
   const client = getGroqClient();
-  const model = options?.model || DEFAULT_MODEL;
-  const temperature = options?.temperature ?? 0.1; // Low temperature for high factual grounding
+  let currentModel = options?.model || PRIMARY_MODEL;
+  const temperature = options?.temperature ?? 0.1;
   const max_tokens = options?.maxTokens ?? 1024;
 
   const startTime = performance.now();
@@ -97,7 +98,7 @@ export async function callGroqLLM(
   while (attempt < MAX_RETRIES) {
     try {
       const response = await client.chat.completions.create({
-        model,
+        model: currentModel,
         messages,
         temperature,
         max_tokens,
@@ -108,25 +109,36 @@ export async function callGroqLLM(
 
       return {
         text,
-        model,
+        model: currentModel,
         latencyMs,
       };
     } catch (err: unknown) {
       attempt++;
       const errorMessage = err instanceof Error ? err.message : String(err);
-      const isRateLimit = errorMessage.includes("429") || errorMessage.toLowerCase().includes("rate limit");
+      const isRateLimit =
+        errorMessage.includes("429") ||
+        errorMessage.includes("413") ||
+        errorMessage.toLowerCase().includes("rate_limit_exceeded") ||
+        errorMessage.toLowerCase().includes("tokens per minute");
+
+      if (isRateLimit && currentModel !== FALLBACK_MODEL) {
+        console.warn(
+          `⚠️ Groq Rate Limit hit for ${currentModel}. Switching to fallback model: ${FALLBACK_MODEL}...`
+        );
+        currentModel = FALLBACK_MODEL;
+      }
 
       if (attempt >= MAX_RETRIES) {
         throw new Error(
-          `Groq API call failed after ${MAX_RETRIES} attempts (${model}): ${errorMessage}`
+          `Groq API call failed after ${MAX_RETRIES} attempts (${currentModel}): ${errorMessage}`
         );
       }
 
       console.warn(
-        `Warning: Groq API call attempt ${attempt} failed (${isRateLimit ? "Rate limit 429" : "Error"}). Retrying in ${delay}ms...`
+        `Warning: Groq API call attempt ${attempt} failed (${isRateLimit ? "Rate limit/Size limit" : "Error"}). Retrying in ${delay}ms...`
       );
       await sleep(delay);
-      delay *= 2; // Exponential backoff
+      delay *= 1.5;
     }
   }
 

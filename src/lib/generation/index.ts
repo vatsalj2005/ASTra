@@ -4,19 +4,20 @@
  * Responsibilities:
  * 1. Executes Phase 2 Hybrid Retrieval & checks Pre-generation Confidence Signal.
  * 2. If confidence is low, gracefully returns early without invoking LLM (prevents guessing & rate limits).
- * 3. Constructs strictly grounded System & User Prompts with labeled source blocks.
- * 4. Calls Groq API (Llama 3.3 70B, free tier) with retry logic.
+ * 3. Fetches repository file inventory & constructs strictly grounded System & User Prompts.
+ * 4. Calls Groq API (Llama 3.3 70B / Llama 3.1 8B fallback) with smart context truncation.
  * 5. Parses and audits inline citations against real retrieved CodeChunk metadata.
  * 6. Triggers 1-hop reference retrieval pass if LLM answer mentions unretrieved symbols.
  * 7. Returns complete, validated GeneratedAnswer object.
  */
 
 import { hybridRetrieve, retrieveByReference } from "@/lib/retrieval";
+import { getAllRepoChunks } from "@/lib/vector-store";
 import { buildSystemPrompt, formatUserPrompt } from "./prompt-builder";
 import { callGroqLLM } from "./groq-client";
 import { parseAndValidateCitations } from "./citation-parser";
 import { detectUnretrievedReferences } from "./multi-hop-detector";
-import type { GeneratedAnswer, GenerationOptions, RetrievalResult } from "@/types";
+import type { GeneratedAnswer, GenerationOptions } from "@/types";
 
 export * from "./prompt-builder";
 export * from "./groq-client";
@@ -42,8 +43,21 @@ export async function generateAnswer(
   const retrievalResponse = await hybridRetrieve(queryText, repoId);
   const { results: retrievedResults, confidence } = retrievalResponse;
 
-  // 2. Pre-Generation Confidence Safeguard
-  if (confidence.lowConfidence) {
+  // 2. Fetch repository file inventory for file count & directory questions
+  const allRepoChunks = await getAllRepoChunks(repoId);
+  const allFilePaths = Array.from(
+    new Set(allRepoChunks.map((c) => c.filePath))
+  ).sort();
+
+  // 3. Pre-Generation Confidence Safeguard
+  // Special exception: If user is asking a file count / inventory question, we have allFilePaths so we allow generation even if code search confidence is low!
+  const isInventoryQuestion =
+    queryText.toLowerCase().includes("how many") ||
+    queryText.toLowerCase().includes("list all files") ||
+    queryText.toLowerCase().includes("what files") ||
+    queryText.toLowerCase().includes("file count");
+
+  if (confidence.lowConfidence && !isInventoryQuestion) {
     console.log(`\n🛡️ Pre-generation confidence check flagged LOW CONFIDENCE.`);
     console.log(`   Reason: ${confidence.reason}`);
     console.log(`   Skipping LLM call to prevent hallucination.`);
@@ -62,13 +76,18 @@ export async function generateAnswer(
     };
   }
 
-  // 3. Build Grounded Prompts
+  // 4. Build Grounded Prompts (with File Inventory & Context Truncation)
   const systemPrompt = buildSystemPrompt();
-  let userPrompt = formatUserPrompt(queryText, retrievedResults);
+  let userPrompt = formatUserPrompt(
+    queryText,
+    retrievedResults,
+    repoId,
+    allFilePaths
+  );
   let activeResults = [...retrievedResults];
   let multiHopTriggered = false;
 
-  // 4. Initial LLM Generation Call
+  // 5. Initial LLM Generation Call
   const messages = [
     { role: "system" as const, content: systemPrompt },
     { role: "user" as const, content: userPrompt },
@@ -76,8 +95,8 @@ export async function generateAnswer(
 
   let llmResponse = await callGroqLLM(messages, options);
 
-  // 5. Check for 1-Hop Multi-Hop Trigger (if allowed)
-  if (options?.allowMultiHop !== false) {
+  // 6. Check for 1-Hop Multi-Hop Trigger (if allowed)
+  if (options?.allowMultiHop !== false && !isInventoryQuestion) {
     const unretrievedSymbols = detectUnretrievedReferences(
       llmResponse.text,
       activeResults.map((r) => r.chunk)
@@ -85,11 +104,15 @@ export async function generateAnswer(
 
     if (unretrievedSymbols.length > 0) {
       const targetSymbol = unretrievedSymbols[0];
-      console.log(`\n🔁 Multi-hop trigger: Answer referenced unretrieved symbol "${targetSymbol}"`);
+      console.log(
+        `\n🔁 Multi-hop trigger: Answer referenced unretrieved symbol "${targetSymbol}"`
+      );
 
       const extraHits = await retrieveByReference(targetSymbol, repoId, 3);
       if (extraHits.length > 0) {
-        console.log(`   Found ${extraHits.length} additional chunk(s) via 1-hop reference lookup.`);
+        console.log(
+          `   Found ${extraHits.length} additional chunk(s) via 1-hop reference lookup.`
+        );
         multiHopTriggered = true;
 
         // Deduplicate and append extra chunks
@@ -101,7 +124,12 @@ export async function generateAnswer(
         }
 
         // Re-build user prompt with expanded context and re-run generation once
-        userPrompt = formatUserPrompt(queryText, activeResults);
+        userPrompt = formatUserPrompt(
+          queryText,
+          activeResults,
+          repoId,
+          allFilePaths
+        );
         const updatedMessages = [
           { role: "system" as const, content: systemPrompt },
           { role: "user" as const, content: userPrompt },
@@ -112,21 +140,25 @@ export async function generateAnswer(
     }
   }
 
-  // 6. Parse and Validate Citations
+  // 7. Parse and Validate Citations
   const { citations, invalidCitations } = parseAndValidateCitations(
     llmResponse.text,
     activeResults.map((r) => r.chunk)
   );
 
-  // 7. Post-Generation "I don't know" Check
+  // 8. Post-Generation "I don't know" Check
   const isDeclined = llmResponse.text
     .toLowerCase()
     .includes("i don't know based on the provided codebase context");
 
   const elapsedTotalMs = Math.round(performance.now() - startTime);
 
-  console.log(`\n✅ Generation Complete (${llmResponse.model}, ${elapsedTotalMs}ms)`);
-  console.log(`   Verified Citations: ${citations.length} valid, ${invalidCitations.length} invalid.`);
+  console.log(
+    `\n✅ Generation Complete (${llmResponse.model}, ${elapsedTotalMs}ms)`
+  );
+  console.log(
+    `   Verified Citations: ${citations.length} valid, ${invalidCitations.length} invalid.`
+  );
 
   return {
     text: llmResponse.text,
@@ -134,7 +166,9 @@ export async function generateAnswer(
     invalidCitations,
     retrievedChunks: activeResults,
     lowConfidence: isDeclined,
-    confidenceReason: isDeclined ? "LLM indicated context was insufficient" : confidence.reason,
+    confidenceReason: isDeclined
+      ? "LLM indicated context was insufficient"
+      : confidence.reason,
     multiHopTriggered,
     model: llmResponse.model,
     latencyMs: elapsedTotalMs,

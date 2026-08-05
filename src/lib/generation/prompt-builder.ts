@@ -45,7 +45,15 @@ export function formatUserPrompt(
 ): string {
   let fileInventoryBlock = "";
   if (allFilePaths && allFilePaths.length > 0) {
-    const fileListStr = allFilePaths.map((f) => `- ${f}`).join("\n");
+    const MAX_INVENTORY_FILES = 100;
+    let fileListStr = "";
+    if (allFilePaths.length > MAX_INVENTORY_FILES) {
+      fileListStr = allFilePaths.slice(0, MAX_INVENTORY_FILES).map((f) => `- ${f}`).join("\n") +
+        `\n... [truncated ${allFilePaths.length - MAX_INVENTORY_FILES} files]`;
+    } else {
+      fileListStr = allFilePaths.map((f) => `- ${f}`).join("\n");
+    }
+
     fileInventoryBlock = `--- REPOSITORY FILE INVENTORY (${repoId || "repo"}) ---
 Total Ingested Files (${allFilePaths.length} files):
 ${fileListStr}

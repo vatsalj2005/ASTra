@@ -88,23 +88,27 @@ export async function embedText(text: string): Promise<number[]> {
 
 /**
  * Embed multiple texts in a batch. More efficient than calling embedText
- * in a loop because the model processes them together.
+ * in a loop because the model processes them together in a single WebAssembly matrix operation.
  *
  * @param texts - Array of text strings to embed.
  * @returns Array of embedding vectors, one per input text.
  */
 export async function embedBatch(texts: string[]): Promise<number[][]> {
+  if (texts.length === 0) return [];
   const extractor = await getExtractor();
   const results: number[][] = [];
 
-  // Process texts individually since the pipeline handles batching internally.
-  // For very large batches, we could add chunking here.
-  for (const text of texts) {
-    const output = await extractor(text, {
-      pooling: "mean",
-      normalize: true,
-    });
-    results.push(Array.from(output.data as Float32Array));
+  const output = await extractor(texts, {
+    pooling: "mean",
+    normalize: true,
+  });
+
+  const data = output.data as Float32Array;
+  const dim = output.dims ? output.dims[1] : 384;
+
+  for (let i = 0; i < texts.length; i++) {
+    const slice = Array.from(data.subarray(i * dim, (i + 1) * dim));
+    results.push(slice);
   }
 
   return results;
@@ -126,12 +130,12 @@ export function formatChunkForEmbedding(chunk: import("@/types").CodeChunk): str
  * Batch embed CodeChunk objects with context enrichment.
  *
  * @param chunks - Array of CodeChunk objects.
- * @param batchSize - Batch size for pipeline processing (default: 16).
+ * @param batchSize - Batch size for pipeline processing (default: 32 for optimal WASM execution).
  * @returns Array of CodeChunk objects with their .embedding field populated.
  */
 export async function embedChunks(
   chunks: import("@/types").CodeChunk[],
-  batchSize = 16
+  batchSize = 32
 ): Promise<import("@/types").CodeChunk[]> {
   console.log(`\n🧠 Generating embeddings for ${chunks.length} chunks...`);
   const start = performance.now();

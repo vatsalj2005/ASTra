@@ -25,11 +25,13 @@ interface RepoContextType {
   ingestionProgressStep: string;
   error: string | null;
   activeTheme: ThemeType;
+  themeMode: "light" | "dark";
   startIngestion: (url: string) => Promise<void>;
   sendQuestion: (question: string) => Promise<void>;
   resetRepo: () => void;
   clearError: () => void;
   setTheme: (theme: ThemeType) => void;
+  toggleThemeMode: () => void;
 }
 
 const RepoContext = createContext<RepoContextType | undefined>(undefined);
@@ -44,8 +46,10 @@ export function RepoProvider({ children }: { children: ReactNode }) {
   const [ingestionProgressStep, setIngestionProgressStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [activeTheme, setActiveThemeState] = useState<ThemeType>("obsidian");
+  const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
+    // 1. Theme Selection
     const savedTheme = localStorage.getItem("astra-theme") as ThemeType;
     if (savedTheme && ["obsidian", "amethyst", "aurora", "solar"].includes(savedTheme)) {
       setActiveThemeState(savedTheme);
@@ -53,7 +57,32 @@ export function RepoProvider({ children }: { children: ReactNode }) {
     } else {
       applyTheme("obsidian");
     }
+
+    // 2. Light/Dark Mode Selection
+    const savedMode = localStorage.getItem("astra-theme-mode") as "light" | "dark";
+    if (savedMode === "light" || savedMode === "dark") {
+      setThemeMode(savedMode);
+      applyThemeMode(savedMode);
+    } else {
+      applyThemeMode("dark");
+    }
   }, []);
+
+  const applyThemeMode = (mode: "light" | "dark") => {
+    const root = document.documentElement;
+    if (mode === "light") {
+      root.classList.add("light");
+    } else {
+      root.classList.remove("light");
+    }
+  };
+
+  const toggleThemeMode = () => {
+    const newMode = themeMode === "light" ? "dark" : "light";
+    setThemeMode(newMode);
+    localStorage.setItem("astra-theme-mode", newMode);
+    applyThemeMode(newMode);
+  };
 
   const applyTheme = (themeName: ThemeType) => {
     const root = document.documentElement;
@@ -185,11 +214,13 @@ export function RepoProvider({ children }: { children: ReactNode }) {
         ingestionProgressStep,
         error,
         activeTheme,
+        themeMode,
         startIngestion,
         sendQuestion,
         resetRepo,
         clearError,
         setTheme,
+        toggleThemeMode,
       }}
     >
       {children}

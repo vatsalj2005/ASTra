@@ -13,7 +13,7 @@ export function RetrievedChunksPanel({ chunks }: RetrievedChunksPanelProps) {
   if (!chunks || chunks.length === 0) return null;
 
   return (
-    <div className="mt-4 pt-3.5 border-t border-white/5 font-sans text-xs">
+    <div className="mt-4 pt-3.5 border-t border-card-border font-sans text-xs">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 font-mono text-text-muted hover:text-accent-primary transition-colors py-1 group cursor-pointer"
@@ -42,10 +42,10 @@ export function RetrievedChunksPanel({ chunks }: RetrievedChunksPanelProps) {
             return (
               <div
                 key={chunk.id || idx}
-                className="rounded-2xl bg-bg-primary border border-white/5 p-4 text-xs font-mono shadow-inner hover:border-white/10 transition-all duration-300"
+                className="rounded-2xl bg-bg-primary border border-card-border p-4 text-xs font-mono shadow-inner hover:border-white/10 transition-all duration-300"
               >
                 {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-3.5 mb-3 pb-2.5 border-b border-white/5">
+                <div className="flex flex-wrap items-center justify-between gap-3.5 mb-3 pb-2.5 border-b border-card-border">
                   <div className="flex flex-wrap items-center gap-2 truncate">
                     <span className="text-text-primary font-bold text-[11px] sm:text-xs">
                       {chunk.filePath}
@@ -73,7 +73,7 @@ export function RetrievedChunksPanel({ chunks }: RetrievedChunksPanelProps) {
                 </div>
 
                 {/* Code Snippet Box */}
-                <pre className="p-3.5 rounded-xl bg-bg-secondary/70 border border-white/5 text-[11px] text-text-secondary overflow-x-auto max-h-48 leading-relaxed font-mono custom-scrollbar">
+                <pre className="p-3.5 rounded-xl bg-bg-secondary/70 border border-card-border text-[11px] text-text-secondary overflow-x-auto max-h-48 leading-relaxed font-mono custom-scrollbar">
                   <code>{chunk.content}</code>
                 </pre>
               </div>

@@ -22,7 +22,7 @@ function MainContent() {
 export default function Home() {
   return (
     <RepoProvider>
-      <div className="min-h-screen flex flex-col bg-[#0b0f17] text-slate-100 selection:bg-blue-500/30 selection:text-blue-200 font-sans">
+      <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-accent-primary/20 selection:text-text-primary font-sans transition-colors duration-300">
         <HeroHeader />
         <MainContent />
       </div>

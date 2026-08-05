@@ -70,13 +70,13 @@ export function IngestionProgress() {
           <h2 className="text-xl font-bold text-text-primary mb-1.5 font-sans">
             Ingesting Repository
           </h2>
-          <p className="text-xs font-mono text-text-secondary truncate max-w-md mx-auto bg-bg-secondary/60 border border-white/5 px-3 py-1 rounded-full inline-block">
+          <p className="text-xs font-mono text-text-secondary truncate max-w-md mx-auto bg-bg-secondary/60 border border-card-border px-3 py-1 rounded-full inline-block">
             {repoUrl}
           </p>
         </div>
 
         {/* Linear Progress Bar */}
-        <div className="w-full h-1.5 bg-bg-tertiary rounded-full overflow-hidden mb-8 border border-white/5 relative">
+        <div className="w-full h-1.5 bg-bg-tertiary rounded-full overflow-hidden mb-8 border border-card-border relative">
           <div
             className="h-full bg-gradient-to-r from-accent-primary to-accent-secondary shadow-lg shadow-accent-primary/20 transition-all duration-700 ease-out rounded-full"
             style={{ width: `${pct}%` }}
@@ -103,7 +103,7 @@ export function IngestionProgress() {
                 </div>
               );
               textClass = "text-text-secondary line-through opacity-60";
-              containerClass = "bg-bg-primary/40 border-white/5";
+              containerClass = "bg-bg-primary/40 border-card-border";
             } else if (state === "active") {
               icon = (
                 <div className="w-5 h-5 rounded-full bg-accent-primary/20 border border-accent-primary/40 flex items-center justify-center text-accent-primary font-bold text-[10px] relative">

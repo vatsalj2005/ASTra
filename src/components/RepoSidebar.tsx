@@ -36,12 +36,12 @@ export function RepoSidebar() {
 
       {/* Slide-out Sidebar Panel */}
       <aside
-        className={`fixed top-0 right-0 bottom-0 w-80 bg-bg-secondary/95 border-l border-white/5 p-6 z-50 overflow-y-auto transition-transform duration-300 backdrop-blur-2xl shadow-2xl flex flex-col justify-between ${
+        className={`fixed top-0 right-0 bottom-0 w-80 bg-bg-secondary/95 border-l border-card-border p-6 z-50 overflow-y-auto transition-transform duration-300 backdrop-blur-2xl shadow-2xl flex flex-col justify-between ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div>
-          <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-6">
+          <div className="flex items-center justify-between pb-4 border-b border-card-border mb-6">
             <h3 className="font-bold text-text-primary text-sm font-mono flex items-center gap-2">
               <span>📊</span>
               <span>Repo Insights</span>
@@ -59,19 +59,19 @@ export function RepoSidebar() {
               <label className="text-text-muted text-[10px] uppercase tracking-wider block mb-1.5 font-semibold">
                 Repository Name
               </label>
-              <div className="p-3 rounded-xl bg-bg-primary border border-white/5 text-accent-primary font-bold truncate shadow-inner">
+              <div className="p-3 rounded-xl bg-bg-primary border border-card-border text-accent-primary font-bold truncate shadow-inner">
                 {repoId}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3.5 rounded-xl bg-bg-primary border border-white/5 text-center shadow-inner">
+              <div className="p-3.5 rounded-xl bg-bg-primary border border-card-border text-center shadow-inner">
                 <span className="block text-xl font-extrabold text-text-primary mb-0.5">
                   {ingestionResult.fileCount}
                 </span>
                 <span className="text-[9px] text-text-muted uppercase font-semibold block leading-tight">Files</span>
               </div>
-              <div className="p-3.5 rounded-xl bg-bg-primary border border-white/5 text-center shadow-inner">
+              <div className="p-3.5 rounded-xl bg-bg-primary border border-card-border text-center shadow-inner">
                 <span className="block text-xl font-extrabold text-accent-secondary mb-0.5">
                   {ingestionResult.chunkCount}
                 </span>
@@ -83,7 +83,7 @@ export function RepoSidebar() {
               <label className="text-text-muted text-[10px] uppercase tracking-wider block mb-3 font-semibold">
                 Chunk Breakdown
               </label>
-              <div className="space-y-3.5 p-4 rounded-xl bg-bg-primary border border-white/5 shadow-inner">
+              <div className="space-y-3.5 p-4 rounded-xl bg-bg-primary border border-card-border shadow-inner">
                 {/* Functions Bar */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px]">
@@ -149,7 +149,7 @@ export function RepoSidebar() {
         </div>
 
         {/* Footer info */}
-        <div className="pt-4 border-t border-white/5 text-[9px] font-mono text-text-muted text-center leading-relaxed">
+        <div className="pt-4 border-t border-card-border text-[9px] font-mono text-text-muted text-center leading-relaxed">
           ASTra RAG Engine v0.1.0 <br />
           Parsed via web-tree-sitter WASM
         </div>

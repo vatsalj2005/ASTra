@@ -56,7 +56,7 @@ export function ChatWindow() {
 
         {/* Loading Indicator */}
         {isLoadingAnswer && (
-          <div className="flex items-center gap-3.5 my-4 p-4.5 rounded-2xl bg-bg-secondary/40 border border-white/5 text-xs font-mono text-text-secondary animate-pulse shadow-md">
+          <div className="flex items-center gap-3.5 my-4 p-4.5 rounded-2xl bg-bg-secondary/40 border border-card-border text-xs font-mono text-text-secondary animate-pulse shadow-md">
             <div className="w-4 h-4 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
             <span>ASTra is performing hybrid retrieval & generating cited response...</span>
           </div>
@@ -74,7 +74,7 @@ export function ChatWindow() {
               <button
                 key={sq}
                 onClick={() => handleSuggestedClick(sq)}
-                className="text-xs font-mono text-text-secondary bg-bg-secondary/40 hover:bg-bg-secondary border border-white/5 hover:border-accent-primary/30 px-3.5 py-2 rounded-xl transition-all duration-300 text-left active:scale-98 cursor-pointer flex items-center gap-1.5"
+                className="text-xs font-mono text-text-secondary bg-bg-secondary/40 hover:bg-bg-secondary border border-card-border hover:border-accent-primary/30 px-3.5 py-2 rounded-xl transition-all duration-300 text-left active:scale-98 cursor-pointer flex items-center gap-1.5"
               >
                 <span>💡</span>
                 <span>{sq}</span>
@@ -85,7 +85,7 @@ export function ChatWindow() {
       )}
 
       {/* Prompt Input Box */}
-      <div className="pb-6 pt-2 sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-white/5">
+      <div className="pb-6 pt-2 sticky bottom-0 bg-background/80 backdrop-blur-md border-t border-card-border">
         {error && (
           <div className="mb-3.5 p-4 rounded-xl bg-error/10 border border-error/25 text-xs font-mono text-error flex items-start justify-between gap-3 animate-fade-in-up">
             <div className="flex gap-2">
@@ -104,7 +104,7 @@ export function ChatWindow() {
           </div>
         )}
         <form onSubmit={handleSubmit} className="relative">
-          <div className="relative rounded-2xl bg-bg-secondary/80 border border-white/5 p-1 transition-all duration-300 focus-within:border-accent-primary/40 focus-within:ring-2 focus-within:ring-accent-primary/10 shadow-lg">
+          <div className="relative rounded-2xl bg-card-bg border border-card-border p-1.5 transition-all duration-300 focus-within:border-accent-primary/40 focus-within:ring-2 focus-within:ring-accent-primary/15 shadow-xl">
             <textarea
               rows={2}
               value={inputText}

@@ -67,7 +67,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             ? "bg-gradient-to-br from-accent-primary to-accent-secondary text-white font-medium rounded-tr-none border-b border-white/10"
             : isRefusal
             ? "bg-bg-secondary/40 border border-error/20 text-text-primary rounded-tl-none"
-            : "bg-bg-secondary/40 border border-white/5 text-text-primary rounded-tl-none hover:border-white/10"
+            : "bg-bg-secondary/40 border border-card-border text-text-primary rounded-tl-none hover:border-white/10"
         }`}
       >
         {/* Low Confidence Warning Badge for Refusals */}
@@ -90,7 +90,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
         {/* Footer Metadata */}
         {!isUser && answerData && (
-          <div className="mt-4 pt-3.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 text-[10px] font-mono text-text-muted">
+          <div className="mt-4 pt-3.5 border-t border-card-border flex flex-wrap items-center justify-between gap-3 text-[10px] font-mono text-text-muted">
             <div className="flex items-center gap-3">
               <span>Model: <span className="text-text-secondary font-semibold">{answerData.model}</span></span>
               <span>•</span>

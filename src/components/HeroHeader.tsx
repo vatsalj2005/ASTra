@@ -11,13 +11,13 @@ const THEME_OPTIONS: { id: ThemeType; label: string; dot: string; gradient: stri
 ];
 
 export function HeroHeader() {
-  const { stage, repoId, resetRepo, activeTheme, setTheme } = useRepo();
+  const { stage, repoId, resetRepo, activeTheme, setTheme, themeMode, toggleThemeMode } = useRepo();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const currentTheme = THEME_OPTIONS.find((t) => t.id === activeTheme) || THEME_OPTIONS[0];
 
   return (
-    <header className="border-b border-white/5 bg-background/45 backdrop-blur-xl sticky top-0 z-30 transition-all duration-300">
+    <header className="border-b border-card-border bg-background/45 backdrop-blur-xl sticky top-0 z-30 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo & Name */}
         <div className="flex items-center gap-3">
@@ -41,24 +41,33 @@ export function HeroHeader() {
 
         {/* Feature Architecture Badges */}
         <div className="hidden lg:flex items-center gap-2.5 text-[11px] font-mono">
-          <span className="px-2.5 py-1 rounded-lg bg-bg-secondary/60 border border-white/5 text-text-secondary hover:text-text-primary hover:border-accent-primary/20 transition-all duration-300">
+          <span className="px-2.5 py-1 rounded-lg bg-bg-secondary/60 border border-card-border text-text-secondary hover:text-text-primary hover:border-accent-primary/20 transition-all duration-300">
             🌳 Tree-Sitter AST
           </span>
-          <span className="px-2.5 py-1 rounded-lg bg-bg-secondary/60 border border-white/5 text-text-secondary hover:text-text-primary hover:border-accent-primary/20 transition-all duration-300">
+          <span className="px-2.5 py-1 rounded-lg bg-bg-secondary/60 border border-card-border text-text-secondary hover:text-text-primary hover:border-accent-primary/20 transition-all duration-300">
             ⚡ Hybrid RRF
           </span>
-          <span className="px-2.5 py-1 rounded-lg bg-bg-secondary/60 border border-white/5 text-text-secondary hover:text-text-primary hover:border-accent-primary/20 transition-all duration-300">
+          <span className="px-2.5 py-1 rounded-lg bg-bg-secondary/60 border border-card-border text-text-secondary hover:text-text-primary hover:border-accent-primary/20 transition-all duration-300">
             🦙 Llama 3.3 70B
           </span>
         </div>
 
         {/* Theme System Selector & Active Repo Pill */}
         <div className="flex items-center gap-3">
+          {/* Light/Dark Mode Toggle */}
+          <button
+            onClick={toggleThemeMode}
+            className="flex items-center justify-center w-8 h-8 rounded-xl bg-bg-secondary/60 hover:bg-bg-tertiary border border-card-border hover:border-white/10 text-text-secondary hover:text-text-primary transition-all duration-200 cursor-pointer active:scale-95 text-sm"
+            title={themeMode === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+          >
+            {themeMode === "light" ? "🌙" : "☀️"}
+          </button>
+
           {/* Custom Theme Selector Dropdown */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-bg-secondary/60 hover:bg-bg-tertiary border border-white/5 text-xs font-mono text-text-secondary hover:text-text-primary transition-all duration-200 cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-bg-secondary/60 hover:bg-bg-tertiary border border-card-border text-xs font-mono text-text-secondary hover:text-text-primary transition-all duration-200 cursor-pointer"
             >
               <span className={`w-2 h-2 rounded-full ${currentTheme.dot} animate-pulse`} />
               <span className="hidden md:inline">{currentTheme.label}</span>
@@ -105,7 +114,7 @@ export function HeroHeader() {
               </div>
               <button
                 onClick={resetRepo}
-                className="text-xs font-mono text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-white/5 transition-all duration-200 active:scale-95 cursor-pointer"
+                className="text-xs font-mono text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-xl bg-bg-secondary hover:bg-bg-tertiary border border-card-border transition-all duration-200 active:scale-95 cursor-pointer"
               >
                 Exit
               </button>

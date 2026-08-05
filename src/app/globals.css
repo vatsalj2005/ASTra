@@ -74,6 +74,92 @@
   --card-border-hover: rgba(245, 158, 11, 0.2);
 }
 
+/* ===========================================================================
+   Light Mode Theme Overrides
+   =========================================================================== */
+
+.light {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e2e8f0;
+  
+  --accent-primary: #0891b2; /* cyan-600 */
+  --accent-secondary: #4f46e5; /* indigo-600 */
+  --accent-glow: rgba(8, 145, 178, 0.08);
+  --accent-glow-strong: rgba(8, 145, 178, 0.15);
+  
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(15, 23, 42, 0.08);
+  --card-border-hover: rgba(8, 145, 178, 0.3);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+}
+
+.theme-amethyst.light {
+  --background: #faf5ff;
+  --bg-primary: #faf5ff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f3e8ff;
+  
+  --accent-primary: #c026d3; /* fuchsia-600 */
+  --accent-secondary: #7c3aed; /* violet-600 */
+  --accent-glow: rgba(192, 38, 211, 0.08);
+  --accent-glow-strong: rgba(192, 38, 211, 0.15);
+  
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(59, 7, 100, 0.08);
+  --card-border-hover: rgba(192, 38, 211, 0.3);
+  
+  --text-primary: #3b0764;
+  --text-secondary: #6b21a8;
+  --text-muted: #c084fc;
+}
+
+.theme-aurora.light {
+  --background: #f0fdf4;
+  --bg-primary: #f0fdf4;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #dcfce7;
+  
+  --accent-primary: #059669; /* emerald-600 */
+  --accent-secondary: #0d9488; /* teal-600 */
+  --accent-glow: rgba(5, 150, 105, 0.08);
+  --accent-glow-strong: rgba(5, 150, 105, 0.15);
+  
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(5, 46, 22, 0.08);
+  --card-border-hover: rgba(5, 150, 105, 0.3);
+  
+  --text-primary: #052e16;
+  --text-secondary: #065f46;
+  --text-muted: #34d399;
+}
+
+.theme-solar.light {
+  --background: #fffbeb;
+  --bg-primary: #fffbeb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #fef3c7;
+  
+  --accent-primary: #d97706; /* amber-600 */
+  --accent-secondary: #ea580c; /* orange-600 */
+  --accent-glow: rgba(217, 119, 6, 0.08);
+  --accent-glow-strong: rgba(217, 119, 6, 0.15);
+  
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(69, 26, 3, 0.08);
+  --card-border-hover: rgba(217, 119, 6, 0.3);
+  
+  --text-primary: #451a03;
+  --text-secondary: #9a3412;
+  --text-muted: #fbbf24;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

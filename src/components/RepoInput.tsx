@@ -3,11 +3,7 @@
 import React, { useState } from "react";
 import { useRepo } from "@/context/RepoContext";
 
-const SAMPLE_REPOS = [
-  { name: "vatsalj2005/ASTra (This App)", url: "https://github.com/vatsalj2005/ASTra" },
-  { name: "expressjs/express-paginate", url: "https://github.com/expressjs/express-paginate" },
-  { name: "octocat/Hello-World", url: "https://github.com/octocat/Hello-World" },
-];
+
 
 export function RepoInput() {
   const { startIngestion, error, clearError, activeTheme } = useRepo();
@@ -33,12 +29,7 @@ export function RepoInput() {
     startIngestion(trimmed);
   };
 
-  const handleSampleClick = (url: string) => {
-    setInputUrl(url);
-    setValidationError("");
-    clearError();
-    startIngestion(url);
-  };
+
 
   // Select blob gradient based on active theme
   const getBlobClasses = () => {
@@ -115,7 +106,7 @@ export function RepoInput() {
                   setValidationError("");
                 }}
                 placeholder="https://github.com/owner/repository"
-                className="w-full bg-bg-primary/80 border border-white/5 rounded-xl pl-12 pr-32 py-4 text-sm text-text-primary placeholder-text-muted font-mono focus:outline-none focus:border-accent-primary/50 focus:ring-1 focus:ring-accent-primary/20 transition-all duration-300"
+                className="w-full bg-bg-primary/80 border border-card-border rounded-xl pl-12 pr-32 py-4 text-sm text-text-primary placeholder-text-muted font-mono focus:outline-none focus:border-accent-primary/50 focus:ring-1 focus:ring-accent-primary/20 transition-all duration-300"
               />
 
               <button
@@ -138,24 +129,7 @@ export function RepoInput() {
           </div>
         </form>
 
-        {/* Quick Try Sample Repos */}
-        <div className="mt-8 pt-8 border-t border-white/5">
-          <p className="text-[11px] font-mono text-text-muted mb-4 text-center tracking-wide uppercase">
-            Or select a demo repository:
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {SAMPLE_REPOS.map((repo) => (
-              <button
-                key={repo.name}
-                onClick={() => handleSampleClick(repo.url)}
-                className="text-xs font-mono text-text-secondary bg-bg-secondary/40 hover:bg-bg-secondary hover:text-accent-primary border border-white/5 hover:border-accent-primary/30 px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-2 group cursor-pointer"
-              >
-                <span className="text-accent-primary opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">⚡</span>
-                <span>{repo.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+
       </div>
     </div>
   );

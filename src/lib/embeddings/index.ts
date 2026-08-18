@@ -15,7 +15,6 @@ import type { CodeChunk } from "@/types";
 
 loadEnv();
 
-const GEMINI_EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-004";
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 function getApiKey(): string {
@@ -30,14 +29,21 @@ function getApiKey(): string {
   return key;
 }
 
+function getEmbeddingModel(): string {
+  loadEnv();
+  const rawModel = process.env.EMBEDDING_MODEL?.trim() || "gemini-embedding-001";
+  if (rawModel === "text-embedding-004" || rawModel === "models/text-embedding-004") {
+    return "models/gemini-embedding-001";
+  }
+  return rawModel.startsWith("models/") ? rawModel : `models/${rawModel}`;
+}
+
 /**
  * Embed a single text string into a normalized 768-dim vector using Gemini API.
  */
 export async function embedText(text: string): Promise<number[]> {
   const apiKey = getApiKey();
-  const modelName = GEMINI_EMBEDDING_MODEL.startsWith("models/")
-    ? GEMINI_EMBEDDING_MODEL
-    : `models/${GEMINI_EMBEDDING_MODEL}`;
+  const modelName = getEmbeddingModel();
 
   const url = `${GEMINI_API_BASE}/${modelName}:embedContent?key=${apiKey}`;
 
@@ -49,6 +55,7 @@ export async function embedText(text: string): Promise<number[]> {
       content: {
         parts: [{ text }],
       },
+      outputDimensionality: 768,
     }),
   });
 
@@ -71,9 +78,7 @@ export async function embedText(text: string): Promise<number[]> {
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
   const apiKey = getApiKey();
-  const modelName = GEMINI_EMBEDDING_MODEL.startsWith("models/")
-    ? GEMINI_EMBEDDING_MODEL
-    : `models/${GEMINI_EMBEDDING_MODEL}`;
+  const modelName = getEmbeddingModel();
 
   const url = `${GEMINI_API_BASE}/${modelName}:batchEmbedContents?key=${apiKey}`;
 
@@ -82,6 +87,7 @@ export async function embedBatch(texts: string[]): Promise<number[][]> {
     content: {
       parts: [{ text: t }],
     },
+    outputDimensionality: 768,
   }));
 
   const res = await fetch(url, {
@@ -153,7 +159,7 @@ export async function embedChunks(
  * Get the configured model name.
  */
 export function getModelName(): string {
-  return GEMINI_EMBEDDING_MODEL;
+  return getEmbeddingModel();
 }
 
 /**

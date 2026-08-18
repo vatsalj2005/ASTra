@@ -86,7 +86,7 @@ async function main() {
     pass("Model configured", getModelName());
     pass("Test embedding", `dim=${vector.length}, ${elapsed}ms`);
 
-    // Sanity check: text-embedding-004 produces 768-dimensional vectors
+    // Sanity check: gemini-embedding-001 produces 768-dimensional vectors
     if (vector.length !== 768) {
       console.log(
         `    ${YELLOW}⚠ Expected 768 dimensions, got ${vector.length}${RESET}`

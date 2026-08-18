@@ -73,7 +73,7 @@ async function main() {
     const hybridResponse = await hybridRetrieve(item.query, repoId, { topN: 5 });
 
     // Print Semantic Results
-    console.log(`\n  ${BOLD}[1] Semantic Vector Search (all-MiniLM-L6-v2):${RESET}`);
+    console.log(`\n  ${BOLD}[1] Semantic Vector Search (Google Gemini text-embedding-004):${RESET}`);
     if (semanticHits.length === 0) console.log(`      (No matches)`);
     semanticHits.forEach((hit, idx) => {
       console.log(

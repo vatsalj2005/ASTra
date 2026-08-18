@@ -68,11 +68,11 @@
 | **Framework** | Next.js 16 (App Router), React 19, TypeScript | Server-side API endpoints, server-rendered layouts, and interactive client context states. |
 | **Styling** | Tailwind CSS v4, PostCSS | Dynamic style variables, responsive layouts, glassmorphic cards, and hardware-accelerated animations. |
 | **AST Parser** | `web-tree-sitter` (WASM Runtime) | Portable syntax tree parsing for JavaScript, TypeScript, and Python. |
-| **Embeddings** | `@xenova/transformers` (local ONNX/WASM) | Runs `all-MiniLM-L6-v2` locally to extract 384-dimensional normalized vector embeddings. |
+| **Embeddings** | Google Gemini API (`text-embedding-004`) | Ultra-fast cloud embeddings extracting 768-dimensional normalized vectors (batches up to 100 chunks/request). |
 | **Vector Database** | ChromaDB (ChromaClient) / In-memory JSON Fallback | High-performance vector database support with immediate file-backed JSON fallback if no local container is active. |
 | **Keyword Ranker** | Custom Okapi BM25 Engine | Lexical ranker featuring code-aware tokenization and symbol boosting. |
 | **Repo Ingest** | `simple-git` | Programmatic git interface for shallow repository clones. |
-| **LLM Inference** | `groq-sdk` (Llama 3.3 70B Versatile) | Generates natural language answers based on grounded context prompt layouts. |
+| **LLM Inference** | `groq-sdk` (GPT-OSS 120B / LPU Acceleration) | Generates natural language answers based on grounded context prompt layouts. |
 
 ---
 

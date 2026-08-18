@@ -7,7 +7,7 @@ const STAGES = [
   { id: 1, label: "Connecting & cloning repository" },
   { id: 2, label: "Filtering source files & documentation" },
   { id: 3, label: "Parsing syntax trees (web-tree-sitter)" },
-  { id: 4, label: "Generating local embeddings (all-MiniLM-L6-v2)" },
+  { id: 4, label: "Generating semantic embeddings (Google Gemini text-embedding-004)" },
   { id: 5, label: "Storing vectors in ChromaDB / Local Store" },
 ];
 
@@ -23,7 +23,7 @@ export function IngestionProgress() {
       { id: 1, keys: ["clone", "connect", "repository"] },
       { id: 2, keys: ["filter", "file"] },
       { id: 3, keys: ["parse", "ast", "tree-sitter"] },
-      { id: 4, keys: ["generate", "embed", "minilm"] },
+      { id: 4, keys: ["generate", "embed", "gemini", "minilm"] },
       { id: 5, keys: ["store", "vector", "db", "chroma"] }
     ];
 

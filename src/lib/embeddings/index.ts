@@ -1,131 +1,112 @@
 /**
- * Embedding model wrapper for Ask My Codebase.
+ * Embedding model module for ASTra.
  *
- * Uses @xenova/transformers to run the all-MiniLM-L6-v2 model locally
- * via ONNX Runtime (WebAssembly). No API calls, no cost, ~25MB model
- * downloaded and cached on first use.
+ * Uses Google Gemini API (text-embedding-004) for ultra-fast, cloud-accelerated
+ * semantic embeddings (768-dim normalized vectors).
  *
- * Design decisions:
- * - Singleton pattern: The model is loaded once and reused. Loading takes
- *   1-3 seconds; subsequent calls are fast (~5-50ms per embedding).
- * - Why not Python sentence-transformers? Keeping everything in JS means
- *   one runtime, one deploy, no IPC overhead. The WASM-based model is
- *   ~2-3x slower than native ONNX, but for repo-scale data (thousands of
- *   chunks, not millions) this is negligible.
- * - Why all-MiniLM-L6-v2? It's the most popular lightweight embedding model,
- *   produces 384-dim vectors (small storage footprint), and has excellent
- *   quality for code search tasks. If we need better code-specific embeddings
- *   later, we can swap to `jinaai/jina-embeddings-v2-base-code` without
- *   changing the interface.
+ * Features:
+ * - Up to 100 chunks batched per single HTTP request (via batchEmbedContents)
+ * - Sub-second latency (~200ms-500ms for 100 chunks)
+ * - 100% Free via Google AI Studio (https://aistudio.google.com)
  */
 
-import { pipeline, env } from "@xenova/transformers";
-import os from "os";
 import { loadEnv } from "@/lib/env";
-
-// ---------------------------------------------------------------------------
-// Configuration
-// ---------------------------------------------------------------------------
+import type { CodeChunk } from "@/types";
 
 loadEnv();
 
-// Set WASM threads to use CPU cores (leaving one free for the event loop)
-if (env.backends?.onnx?.wasm) {
-  env.backends.onnx.wasm.numThreads = Math.max(1, os.cpus().length - 1);
-}
+const GEMINI_EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-004";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
-const DEFAULT_MODEL = process.env.EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
-
-// ---------------------------------------------------------------------------
-// Singleton Model Instance
-// ---------------------------------------------------------------------------
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let extractorPipeline: any = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let loadingPromise: Promise<any> | null = null;
-
-/**
- * Lazily initialize the embedding pipeline. Thread-safe via promise caching —
- * concurrent calls during initial load will all await the same promise.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getExtractor(): Promise<any> {
-  if (extractorPipeline) return extractorPipeline;
-
-  if (!loadingPromise) {
-    loadingPromise = pipeline("feature-extraction", DEFAULT_MODEL, {
-      // Quantized model is smaller and faster to download/load.
-      // Quality difference vs. fp32 is negligible for retrieval.
-      quantized: true,
-    }).then((pipe) => {
-      extractorPipeline = pipe;
-      return pipe;
-    });
+function getApiKey(): string {
+  loadEnv();
+  const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!key || key.startsWith("your_")) {
+    throw new Error(
+      "GEMINI_API_KEY environment variable is missing or placeholder. " +
+        "Please get a free API key at https://aistudio.google.com/ and add GEMINI_API_KEY=your_key to your .env.local file."
+    );
   }
-
-  return loadingPromise;
+  return key;
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
 /**
- * Embed a single text string into a normalized vector.
- *
- * @param text - The text to embed (code snippet, query, etc.)
- * @returns A normalized embedding vector (Float64Array converted to number[]).
- *
- * @example
- * ```ts
- * const vec = await embedText("function login(user, pass) { ... }");
- * console.log(vec.length); // 384
- * ```
+ * Embed a single text string into a normalized 768-dim vector using Gemini API.
  */
 export async function embedText(text: string): Promise<number[]> {
-  const extractor = await getExtractor();
-  const output = await extractor(text, {
-    pooling: "mean",
-    normalize: true,
+  const apiKey = getApiKey();
+  const modelName = GEMINI_EMBEDDING_MODEL.startsWith("models/")
+    ? GEMINI_EMBEDDING_MODEL
+    : `models/${GEMINI_EMBEDDING_MODEL}`;
+
+  const url = `${GEMINI_API_BASE}/${modelName}:embedContent?key=${apiKey}`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: modelName,
+      content: {
+        parts: [{ text }],
+      },
+    }),
   });
-  return Array.from(output.data as Float32Array);
+
+  if (!res.ok) {
+    const errorData = await res.text();
+    throw new Error(`Gemini Embedding API call failed (${res.status}): ${errorData}`);
+  }
+
+  const data = await res.json();
+  if (!data.embedding?.values) {
+    throw new Error("Invalid response format received from Gemini Embedding API");
+  }
+
+  return data.embedding.values;
 }
 
 /**
- * Embed multiple texts in a batch. More efficient than calling embedText
- * in a loop because the model processes them together in a single WebAssembly matrix operation.
- *
- * @param texts - Array of text strings to embed.
- * @returns Array of embedding vectors, one per input text.
+ * Embed multiple texts in batches of up to 100 texts using batchEmbedContents.
  */
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   if (texts.length === 0) return [];
-  const extractor = await getExtractor();
-  const results: number[][] = [];
+  const apiKey = getApiKey();
+  const modelName = GEMINI_EMBEDDING_MODEL.startsWith("models/")
+    ? GEMINI_EMBEDDING_MODEL
+    : `models/${GEMINI_EMBEDDING_MODEL}`;
 
-  const output = await extractor(texts, {
-    pooling: "mean",
-    normalize: true,
+  const url = `${GEMINI_API_BASE}/${modelName}:batchEmbedContents?key=${apiKey}`;
+
+  const requests = texts.map((t) => ({
+    model: modelName,
+    content: {
+      parts: [{ text: t }],
+    },
+  }));
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ requests }),
   });
 
-  const data = output.data as Float32Array;
-  const dim = output.dims ? output.dims[1] : 384;
-
-  for (let i = 0; i < texts.length; i++) {
-    const slice = Array.from(data.subarray(i * dim, (i + 1) * dim));
-    results.push(slice);
+  if (!res.ok) {
+    const errorData = await res.text();
+    throw new Error(`Gemini Batch Embedding API failed (${res.status}): ${errorData}`);
   }
 
-  return results;
+  const data = await res.json();
+  if (!data.embeddings || !Array.isArray(data.embeddings)) {
+    throw new Error("Invalid response structure from Gemini batchEmbedContents API");
+  }
+
+  return data.embeddings.map((e: { values: number[] }) => e.values);
 }
 
 /**
- * Format a CodeChunk for embedding by combining file path, symbol metadata,
- * and content. Bare code snippets often lack context; adding file path and
- * symbol name improves semantic retrieval matches significantly.
+ * Format a CodeChunk for embedding with file path and symbol metadata.
  */
-export function formatChunkForEmbedding(chunk: import("@/types").CodeChunk): string {
+export function formatChunkForEmbedding(chunk: CodeChunk): string {
   const symbolHeader = chunk.symbolName
     ? `| ${chunk.symbolType || "symbol"}: ${chunk.symbolName}`
     : "";
@@ -134,16 +115,13 @@ export function formatChunkForEmbedding(chunk: import("@/types").CodeChunk): str
 
 /**
  * Batch embed CodeChunk objects with context enrichment.
- *
- * @param chunks - Array of CodeChunk objects.
- * @param batchSize - Batch size for pipeline processing (default: 32 for optimal WASM execution).
- * @returns Array of CodeChunk objects with their .embedding field populated.
+ * Batches are processed in chunks of 100 (the maximum allowed by Gemini batchEmbedContents).
  */
 export async function embedChunks(
-  chunks: import("@/types").CodeChunk[],
-  batchSize = 32
-): Promise<import("@/types").CodeChunk[]> {
-  console.log(`\n🧠 Generating embeddings for ${chunks.length} chunks...`);
+  chunks: CodeChunk[],
+  batchSize = 100
+): Promise<CodeChunk[]> {
+  console.log(`\n🧠 Generating Gemini embeddings for ${chunks.length} chunks...`);
   const start = performance.now();
 
   const enrichedTexts = chunks.map(formatChunkForEmbedding);
@@ -155,14 +133,12 @@ export async function embedChunks(
     embeddings.push(...batchEmbeddings);
 
     const progress = Math.min(i + batchSize, chunks.length);
-    if (chunks.length > 20 && (progress % 32 === 0 || progress === chunks.length)) {
-      console.log(`   Embedded ${progress}/${chunks.length} chunks...`);
-    }
+    console.log(`   Embedded ${progress}/${chunks.length} chunks via Gemini...`);
   }
 
   const elapsedMs = Math.round(performance.now() - start);
   console.log(
-    `   Generated ${embeddings.length} embeddings in ${elapsedMs}ms (${(
+    `   ⚡ Generated ${embeddings.length} Gemini embeddings in ${elapsedMs}ms (${(
       elapsedMs / (chunks.length || 1)
     ).toFixed(1)}ms/chunk)`
   );
@@ -174,15 +150,14 @@ export async function embedChunks(
 }
 
 /**
- * Get the configured model name. Useful for health checks and logging.
+ * Get the configured model name.
  */
 export function getModelName(): string {
-  return DEFAULT_MODEL;
+  return GEMINI_EMBEDDING_MODEL;
 }
 
 /**
  * Get the embedding dimension for the current model.
- * Must be called after at least one embed call (model must be loaded).
  */
 export async function getEmbeddingDimension(): Promise<number> {
   const testVec = await embedText("dimension probe");

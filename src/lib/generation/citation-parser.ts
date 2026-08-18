@@ -11,8 +11,8 @@
 
 import type { Citation, CitationValidationResult, CodeChunk } from "@/types";
 
-// Regex matching [filePath:startLine-endLine] or [filePath:startLine]
-const CITATION_REGEX = /\[([a-zA-Z0-9_./\-]+):(\d+)(?:-(\d+))?\]/g;
+// Regex matching [filePath:startLine-endLine] or [filePath:startLine] or 【filePath:startLine-endLine】
+const CITATION_REGEX = /[\[【]([a-zA-Z0-9_./\-]+):(\d+)(?:-(\d+))?[\]】]/g;
 
 /**
  * Parse and validate inline citations from LLM answer text against retrieved chunks.

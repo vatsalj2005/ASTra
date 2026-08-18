@@ -5,7 +5,7 @@
  * 1. Fetch Repository (shallow clone via simple-git + size check)
  * 2. Filter Files (configurable ignore/allow lists & size caps)
  * 3. Chunk Files (AST parsing for code, header sections for docs)
- * 4. Enrich Context & Batch Embed (@xenova/transformers local model)
+ * 4. Enrich Context & Batch Embed (Google Gemini text-embedding-004 model)
  * 5. Vector Store (ChromaDB upsert & metadata indexing)
  * 6. Cleanup temporary repo files
  */

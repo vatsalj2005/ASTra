@@ -1,8 +1,8 @@
 /**
  * Semantic Vector Search Module for ASTra.
  *
- * Converts a natural-language query string into a 384-dimensional embedding
- * using local @xenova/transformers and queries nearest-neighbor code chunks
+ * Converts a natural-language query string into a 768-dimensional embedding
+ * using Google Gemini (text-embedding-004) and queries nearest-neighbor code chunks
  * from the vector store via Cosine Similarity.
  */
 

@@ -71,7 +71,7 @@ export async function generateAnswer(
       lowConfidence: true,
       confidenceReason: confidence.reason,
       multiHopTriggered: false,
-      model: options?.model || "llama-3.3-70b-versatile",
+      model: options?.model || process.env.GROQ_MODEL || "openai/gpt-oss-120b",
       latencyMs: elapsedMs,
     };
   }

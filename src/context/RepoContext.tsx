@@ -108,7 +108,7 @@ export function RepoProvider({ children }: { children: ReactNode }) {
       // Step 1: Simulate progress updates
       const stepTimer1 = setTimeout(() => setIngestionProgressStep("Filtering source files & documentation..."), 800);
       const stepTimer2 = setTimeout(() => setIngestionProgressStep("Parsing syntax trees (web-tree-sitter)..."), 1600);
-      const stepTimer3 = setTimeout(() => setIngestionProgressStep("Generating local embeddings (all-MiniLM-L6-v2)..."), 2400);
+      const stepTimer3 = setTimeout(() => setIngestionProgressStep("Generating semantic embeddings (Google Gemini)..."), 2400);
 
       const res = await fetch("/api/ingest", {
         method: "POST",

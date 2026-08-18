@@ -54,6 +54,7 @@ async function main() {
   header("Environment Variables");
 
   const envVars = [
+    { name: "GEMINI_API_KEY", required: true },
     { name: "GROQ_API_KEY", required: false },
     { name: "EMBEDDING_MODEL", required: false },
     { name: "CHROMA_URL", required: false },
@@ -64,7 +65,7 @@ async function main() {
     if (value && !value.startsWith("your_")) {
       pass(name, "(set)");
     } else if (required) {
-      fail(name, "not set — required");
+      fail(name, "not set — required (get free key at https://aistudio.google.com)");
       allPassed = false;
     } else {
       console.log(
@@ -74,7 +75,7 @@ async function main() {
   }
 
   // ── Check 3: Embedding Model ────────────────────────────────────────
-  header("Embedding Model (@xenova/transformers)");
+  header("Embedding Model (Google Gemini API)");
   try {
     const { embedText, getModelName } = await import("../src/lib/embeddings");
 
@@ -82,13 +83,13 @@ async function main() {
     const vector = await embedText("hello world — verification test");
     const elapsed = Math.round(performance.now() - start);
 
-    pass("Model loaded", getModelName());
+    pass("Model configured", getModelName());
     pass("Test embedding", `dim=${vector.length}, ${elapsed}ms`);
 
-    // Sanity check: all-MiniLM-L6-v2 should produce 384-dimensional vectors
-    if (vector.length !== 384) {
+    // Sanity check: text-embedding-004 produces 768-dimensional vectors
+    if (vector.length !== 768) {
       console.log(
-        `    ${YELLOW}⚠ Expected 384 dimensions, got ${vector.length}${RESET}`
+        `    ${YELLOW}⚠ Expected 768 dimensions, got ${vector.length}${RESET}`
       );
     }
   } catch (error) {
@@ -140,7 +141,6 @@ async function main() {
   header("Dependencies");
   const packages = [
     "next",
-    "@xenova/transformers",
     "web-tree-sitter",
     "chromadb",
     "groq-sdk",

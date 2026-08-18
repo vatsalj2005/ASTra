@@ -16,7 +16,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   // Render text with clickable CitationLink components replacing [filePath:startLine-endLine]
   const renderFormattedContent = (text: string) => {
-    const regex = /\[([a-zA-Z0-9_./\-]+):(\d+)(?:-(\d+))?\]/g;
+    const regex = /[\[【]([a-zA-Z0-9_./\-]+):(\d+)(?:-(\d+))?[\]】]/g;
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     let match: RegExpExecArray | null;

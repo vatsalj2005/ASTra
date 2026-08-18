@@ -11,7 +11,7 @@
  * 1. Repo fetching & size checking via simple-git.
  * 2. File filtering (excluding node_modules, lockfiles, etc.).
  * 3. Tree-sitter AST & Markdown chunking.
- * 4. Local embedding generation (@xenova/transformers 384-dim vectors).
+ * 4. Semantic embedding generation (Google Gemini text-embedding-004 768-dim vectors).
  * 5. Storage in ChromaDB vector store.
  * 6. Vector similarity retrieval probe to confirm stored data is queryable.
  */

@@ -48,7 +48,7 @@ export function HeroHeader() {
             ⚡ Hybrid RRF
           </span>
           <span className="px-2.5 py-1 rounded-lg bg-bg-secondary/60 border border-card-border text-text-secondary hover:text-text-primary hover:border-accent-primary/20 transition-all duration-300">
-            🦙 Llama 3.3 70B
+            ⚡ Groq LLM
           </span>
         </div>
 

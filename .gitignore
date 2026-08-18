@@ -68,3 +68,7 @@ Thumbs.db
 # ===== Misc =====
 *.pem
 .vercel
+
+# ===== Next.js Agent Files =====
+AGENTS.md
+CLAUDE.md

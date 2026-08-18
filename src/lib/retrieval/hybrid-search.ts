@@ -2,7 +2,7 @@
  * Hybrid Retrieval Engine for ASTra.
  *
  * Implements Reciprocal Rank Fusion (RRF) to merge and rerank candidates from:
- * 1. Semantic Vector Search (all-MiniLM-L6-v2 embeddings)
+ * 1. Semantic Vector Search (Gemini text-embedding-004 embeddings)
  * 2. BM25 Lexical Search (wink-bm25 code-aware token index)
  *
  * Reciprocal Rank Fusion (RRF) Formula:

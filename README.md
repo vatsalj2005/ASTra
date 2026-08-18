@@ -150,9 +150,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 | Variable Name | Required | Default Value | Description |
 |---|---|---|---|
-| `GEMINI_API_KEY` | **Yes** | None | Your Google Gemini API Key for semantic embeddings (`text-embedding-004`). |
+| `EMBEDDING_PROVIDER` | No | `local` | Choose `local` for unlimited zero-quota ONNX embeddings (`Xenova/all-MiniLM-L6-v2`), or `gemini` for Google Gemini API (`gemini-embedding-001`). |
+| `GEMINI_API_KEY` | If `EMBEDDING_PROVIDER=gemini` | None | Your Google Gemini API Key (from [aistudio.google.com](https://aistudio.google.com)). |
 | `GROQ_API_KEY` | **Yes** | None | Your Groq Cloud API Key for LLM Q&A inference. |
-| `EMBEDDING_MODEL` | No | `text-embedding-004` | Embedding model identifier used with Google Gemini API. |
+| `EMBEDDING_MODEL` | No | `gemini-embedding-001` | Cloud embedding model used when provider is set to `gemini`. |
 | `GROQ_MODEL` | No | `openai/gpt-oss-120b` | Primary Groq model ID for generation. |
 | `GROQ_FALLBACK_MODEL` | No | `openai/gpt-oss-20b` | Fallback model used if rate/token limits are reached. |
 | `CHROMA_URL` | No | `http://localhost:8000` | Address of your local ChromaDB container. If inactive, falls back to local JSON file database. |

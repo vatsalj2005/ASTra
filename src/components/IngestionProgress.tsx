@@ -7,7 +7,7 @@ const STAGES = [
   { id: 1, label: "Connecting & cloning repository" },
   { id: 2, label: "Filtering source files & documentation" },
   { id: 3, label: "Parsing syntax trees (web-tree-sitter)" },
-  { id: 4, label: "Generating semantic embeddings (Google Gemini)" },
+  { id: 4, label: "Generating semantic embeddings (Local ONNX / Gemini)" },
   { id: 5, label: "Storing vectors in ChromaDB / Local Store" },
 ];
 

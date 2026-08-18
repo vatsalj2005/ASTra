@@ -8,6 +8,7 @@
 
 import { searchBM25 } from "./bm25-search";
 import { querySimilarChunks } from "@/lib/vector-store";
+import { getEmbeddingDimension } from "@/lib/embeddings";
 import type { RetrievalResult } from "@/types";
 
 /**
@@ -40,7 +41,8 @@ export async function retrieveByReference(
   }
 
   // 2. Fallback: Search all chunks for matching file path or symbol
-  const dummyZeroVec = new Array(768).fill(0);
+  const dim = await getEmbeddingDimension();
+  const dummyZeroVec = new Array(dim).fill(0);
   const allChunks = await querySimilarChunks(dummyZeroVec, 1000, repoId);
 
   const matchedChunks = allChunks.filter((chunk) => {

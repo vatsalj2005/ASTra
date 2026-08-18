@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: [
+    "@xenova/transformers",
+    "onnxruntime-node",
     "chromadb",
     "@chroma-core/ai-embeddings-common",
     "@chroma-core/default-embed",

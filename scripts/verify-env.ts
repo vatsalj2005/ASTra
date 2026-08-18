@@ -53,43 +53,47 @@ async function main() {
   // ── Check 2: Required environment variables ─────────────────────────
   header("Environment Variables");
 
+  const { getEmbeddingProvider } = await import("../src/lib/embeddings");
+  const provider = getEmbeddingProvider();
+
   const envVars = [
-    { name: "GEMINI_API_KEY", required: true },
-    { name: "GROQ_API_KEY", required: false },
+    { name: "EMBEDDING_PROVIDER", required: false, defaultVal: "local (unlimited ONNX)" },
+    { name: "GEMINI_API_KEY", required: provider === "gemini" },
+    { name: "GROQ_API_KEY", required: true },
     { name: "EMBEDDING_MODEL", required: false },
     { name: "CHROMA_URL", required: false },
   ];
 
-  for (const { name, required } of envVars) {
+  for (const { name, required, defaultVal } of envVars) {
     const value = process.env[name];
     if (value && !value.startsWith("your_")) {
-      pass(name, "(set)");
+      pass(name, `(set: ${value})`);
     } else if (required) {
-      fail(name, "not set — required (get free key at https://aistudio.google.com)");
+      fail(name, "not set — required");
       allPassed = false;
     } else {
       console.log(
-        `  ${YELLOW}○${RESET} ${name} ${DIM}(not set — optional, using default)${RESET}`
+        `  ${YELLOW}○${RESET} ${name} ${DIM}(not set — optional${defaultVal ? `, using ${defaultVal}` : ""})${RESET}`
       );
     }
   }
 
   // ── Check 3: Embedding Model ────────────────────────────────────────
-  header("Embedding Model (Google Gemini API)");
+  header(`Embedding Engine [${provider.toUpperCase()}]`);
   try {
-    const { embedText, getModelName } = await import("../src/lib/embeddings");
+    const { embedText, getModelName, getEmbeddingDimension } = await import("../src/lib/embeddings");
 
     const start = performance.now();
     const vector = await embedText("hello world — verification test");
     const elapsed = Math.round(performance.now() - start);
+    const expectedDim = await getEmbeddingDimension();
 
-    pass("Model configured", getModelName());
+    pass("Provider & Model", `[${provider}] ${getModelName()}`);
     pass("Test embedding", `dim=${vector.length}, ${elapsed}ms`);
 
-    // Sanity check: gemini-embedding-001 produces 768-dimensional vectors
-    if (vector.length !== 768) {
+    if (vector.length !== expectedDim) {
       console.log(
-        `    ${YELLOW}⚠ Expected 768 dimensions, got ${vector.length}${RESET}`
+        `    ${YELLOW}⚠ Expected ${expectedDim} dimensions, got ${vector.length}${RESET}`
       );
     }
   } catch (error) {

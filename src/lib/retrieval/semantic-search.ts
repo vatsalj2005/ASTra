@@ -25,7 +25,7 @@ export async function searchSemantic(
 ): Promise<RetrievalResult[]> {
   if (!queryText.trim()) return [];
 
-  // 1. Embed query using same local model (all-MiniLM-L6-v2) as Phase 1
+  // 1. Embed query using Gemini API (text-embedding-004) as Phase 1
   const queryVector = await embedText(queryText);
 
   // 2. Query nearest neighbor chunks from vector store

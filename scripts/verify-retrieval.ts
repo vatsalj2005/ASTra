@@ -8,7 +8,7 @@
  *   npx tsx scripts/verify-retrieval.ts https://github.com/expressjs/express-paginate
  *
  * Side-by-Side Comparative Verification:
- * 1. Semantic-Only Vector Search (all-MiniLM-L6-v2)
+ * 1. Semantic-Only Vector Search (Google Gemini text-embedding-004)
  * 2. BM25-Only Keyword Search (wink-bm25 code tokenizer)
  * 3. Hybrid RRF Search (Merged & Reranked + Confidence Signal)
  */

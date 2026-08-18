@@ -84,7 +84,7 @@ export async function generateAnswer(
     repoId,
     allFilePaths
   );
-  let activeResults = [...retrievedResults];
+  const activeResults = [...retrievedResults];
   let multiHopTriggered = false;
 
   // 5. Initial LLM Generation Call

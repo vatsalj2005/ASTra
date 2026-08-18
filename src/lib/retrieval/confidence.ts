@@ -21,9 +21,7 @@ const MIN_RRF_SCORE_THRESHOLD = 0.010;
  * @returns ConfidenceSignal with numeric score, lowConfidence boolean flag, and rationale.
  */
 export function evaluateConfidence(
-  results: RetrievalResult[],
-  semanticCount: number,
-  bm25Count: number
+  results: RetrievalResult[]
 ): ConfidenceSignal {
   // Case 1: No chunks retrieved
   if (results.length === 0) {

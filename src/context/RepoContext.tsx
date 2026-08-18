@@ -36,6 +36,23 @@ interface RepoContextType {
 
 const RepoContext = createContext<RepoContextType | undefined>(undefined);
 
+function applyThemeModeToDoc(mode: "light" | "dark") {
+  const root = document.documentElement;
+  if (mode === "light") {
+    root.classList.add("light");
+  } else {
+    root.classList.remove("light");
+  }
+}
+
+function applyThemeToDoc(themeName: ThemeType) {
+  const root = document.documentElement;
+  root.classList.remove("theme-obsidian", "theme-amethyst", "theme-aurora", "theme-solar");
+  if (themeName !== "obsidian") {
+    root.classList.add(`theme-${themeName}`);
+  }
+}
+
 export function RepoProvider({ children }: { children: ReactNode }) {
   const [stage, setStage] = useState<AppStage>("input");
   const [repoUrl, setRepoUrl] = useState<string>("");
@@ -45,57 +62,33 @@ export function RepoProvider({ children }: { children: ReactNode }) {
   const [isLoadingAnswer, setIsLoadingAnswer] = useState<boolean>(false);
   const [ingestionProgressStep, setIngestionProgressStep] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [activeTheme, setActiveThemeState] = useState<ThemeType>("obsidian");
-  const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
+  const [activeTheme, setActiveThemeState] = useState<ThemeType>(() => {
+    if (typeof window === "undefined") return "obsidian";
+    const saved = localStorage.getItem("astra-theme") as ThemeType;
+    return saved && ["obsidian", "amethyst", "aurora", "solar"].includes(saved) ? saved : "obsidian";
+  });
+  const [themeMode, setThemeMode] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "dark";
+    const saved = localStorage.getItem("astra-theme-mode") as "light" | "dark";
+    return saved === "light" || saved === "dark" ? saved : "dark";
+  });
 
   useEffect(() => {
-    // 1. Theme Selection
-    const savedTheme = localStorage.getItem("astra-theme") as ThemeType;
-    if (savedTheme && ["obsidian", "amethyst", "aurora", "solar"].includes(savedTheme)) {
-      setActiveThemeState(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      applyTheme("obsidian");
-    }
-
-    // 2. Light/Dark Mode Selection
-    const savedMode = localStorage.getItem("astra-theme-mode") as "light" | "dark";
-    if (savedMode === "light" || savedMode === "dark") {
-      setThemeMode(savedMode);
-      applyThemeMode(savedMode);
-    } else {
-      applyThemeMode("dark");
-    }
-  }, []);
-
-  const applyThemeMode = (mode: "light" | "dark") => {
-    const root = document.documentElement;
-    if (mode === "light") {
-      root.classList.add("light");
-    } else {
-      root.classList.remove("light");
-    }
-  };
+    applyThemeToDoc(activeTheme);
+    applyThemeModeToDoc(themeMode);
+  }, [activeTheme, themeMode]);
 
   const toggleThemeMode = () => {
     const newMode = themeMode === "light" ? "dark" : "light";
     setThemeMode(newMode);
     localStorage.setItem("astra-theme-mode", newMode);
-    applyThemeMode(newMode);
-  };
-
-  const applyTheme = (themeName: ThemeType) => {
-    const root = document.documentElement;
-    root.classList.remove("theme-obsidian", "theme-amethyst", "theme-aurora", "theme-solar");
-    if (themeName !== "obsidian") {
-      root.classList.add(`theme-${themeName}`);
-    }
+    applyThemeModeToDoc(newMode);
   };
 
   const setTheme = (themeName: ThemeType) => {
     setActiveThemeState(themeName);
     localStorage.setItem("astra-theme", themeName);
-    applyTheme(themeName);
+    applyThemeToDoc(themeName);
   };
 
   const startIngestion = async (url: string) => {

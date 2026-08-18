@@ -40,7 +40,7 @@ export async function retrieveByReference(
   }
 
   // 2. Fallback: Search all chunks for matching file path or symbol
-  const dummyZeroVec = new Array(384).fill(0);
+  const dummyZeroVec = new Array(768).fill(0);
   const allChunks = await querySimilarChunks(dummyZeroVec, 1000, repoId);
 
   const matchedChunks = allChunks.filter((chunk) => {

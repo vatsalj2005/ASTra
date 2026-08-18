@@ -120,11 +120,7 @@ export async function hybridRetrieve(
   const finalResults = mergedList.slice(0, topN);
 
   // 4. Compute confidence signal
-  const confidence = evaluateConfidence(
-    finalResults,
-    semanticResults.length,
-    bm25Results.length
-  );
+  const confidence = evaluateConfidence(finalResults);
 
   const elapsedMs = Math.round(performance.now() - startTime);
 

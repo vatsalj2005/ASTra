@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  This system is fully self-contained in TypeScript, utilizing a local WebAssembly-based parser and a local ONNX-based embedding extractor to ensure zero native dependencies, zero installation friction, and zero API costs for core pipeline steps.
+  This system is fully self-contained in TypeScript, utilizing a local WebAssembly-based parser and Google Gemini embedding extractor (text-embedding-004) to ensure zero native dependencies, zero installation friction, and sub-second batch vector processing.
 </p>
 
 <p align="center">
@@ -35,7 +35,7 @@
  │                     INGESTION PIPELINE (Server)                 │
  │  Git Fetcher (simple-git)  ➔  File Filter (Ignored files/size)  │
  │  AST Parser (web-tree-sitter WASM)  ➔  Doc Section Chunker     │
- │  Embeddings Engine (ONNX all-MiniLM-L6-v2) ➔ Vector DB / Local  │
+ │  Embeddings Engine (Gemini text-embedding-004) ➔ Vector DB / Local│
  └───────────────────────────────┬─────────────────────────────────┘
                                  │ Search & Grounding
                                  ▼
@@ -95,7 +95,7 @@ Generative models often hallucinate files or functions that do not exist. To enf
 1. **Fetch**: Clones the public repository shallowly (`--depth 1`) using `simple-git`.
 2. **Filter & Guard**: Excludes binaries, build outputs, node modules, and large files. Aborts if total repository size exceeds **50MB** to ensure a safe local demo experience.
 3. **Parse & Chunk**: Routes files to tree-sitter grammars. Extracts functions, classes, and methods as chunks.
-4. **Embed**: Context-enriches the text (`File: {path} | symbol: {name}\n\n{content}`) and passes it to the local ONNX model.
+4. **Embed**: Context-enriches the text (`File: {path} | symbol: {name}\n\n{content}`) and passes it to Google Gemini `text-embedding-004` (batched in up to 100 chunks per request).
 5. **Upsert**: Stores the vectors and metadata in ChromaDB or saves to `tmp/astra-vectors.json`.
 
 ### Hybrid Retrieval & Fusion
@@ -111,7 +111,8 @@ Generative models often hallucinate files or functions that do not exist. To enf
 ### Prerequisites
 - **Node.js** ≥ 20.6.0 (tested on 22.x)
 - **npm** ≥ 10.x
-- **Groq API Key** (Free tier key available at [console.groq.com](https://console.groq.com))
+- **Google Gemini API Key** (100% Free at [aistudio.google.com](https://aistudio.google.com/))
+- **Groq API Key** (100% Free at [console.groq.com](https://console.groq.com))
 
 ### 1. Clone & Install
 ```bash
@@ -131,8 +132,9 @@ Copy the sample environment template:
 ```bash
 cp .env.local.example .env.local
 ```
-Edit `.env.local` and add your Groq API key:
+Edit `.env.local` and add your Gemini and Groq API keys:
 ```env
+GEMINI_API_KEY=your_gemini_api_key_here
 GROQ_API_KEY=gsk_your_groq_api_key_goes_here
 ```
 
@@ -148,9 +150,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 | Variable Name | Required | Default Value | Description |
 |---|---|---|---|
+| `GEMINI_API_KEY` | **Yes** | None | Your Google Gemini API Key for semantic embeddings (`text-embedding-004`). |
 | `GROQ_API_KEY` | **Yes** | None | Your Groq Cloud API Key for LLM Q&A inference. |
-| `CHROMA_URL` | No | `http://localhost:8000` | Address of your local ChromaDB container. If inactive, the app falls back to a local JSON file database. |
-| `EMBEDDING_MODEL` | No | `Xenova/all-MiniLM-L6-v2` | Embedding model identifier used by `@xenova/transformers`. |
+| `EMBEDDING_MODEL` | No | `text-embedding-004` | Embedding model identifier used with Google Gemini API. |
+| `GROQ_MODEL` | No | `openai/gpt-oss-120b` | Primary Groq model ID for generation. |
+| `GROQ_FALLBACK_MODEL` | No | `openai/gpt-oss-20b` | Fallback model used if rate/token limits are reached. |
+| `CHROMA_URL` | No | `http://localhost:8000` | Address of your local ChromaDB container. If inactive, falls back to local JSON file database. |
 
 ---
 

@@ -102,7 +102,6 @@ let isChromaAvailable: boolean | null = null;
 
 function getChromaModule() {
   try {
-    // eslint-disable-next-line no-eval
     return eval('require("chromadb")');
   } catch {
     return null;
@@ -148,7 +147,7 @@ export async function getCollection(): Promise<any> {
     embeddingFunction: noopEmbeddingFunction,
     metadata: {
       description: "ASTra AST-aware code chunks and embeddings",
-      embedding_dimension: 384,
+      embedding_dimension: 768,
     },
   });
   return cachedCollection;
